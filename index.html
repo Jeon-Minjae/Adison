@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Fuel Kiosk</title>
+<style>
+    body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; }
+    .page { display: none; padding: 20px; }
+    button {
+        padding: 15px 25px;
+        margin: 10px;
+        font-size: 20px;
+        border-radius: 10px;
+        border: none;
+        background: #007bff;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover { background: #0059c9; }
+    input { padding: 10px; font-size: 18px; margin-top: 10px; width: 200px; }
+</style>
+</head>
+
+<body>
+
+<!-- PAGE 1: Fuel Selection -->
+<div id="page1" class="page" style="display:block;">
+    <h2>Select Your Fuel Type</h2>
+    <button onclick="goPayment('RON95')">RON 95</button>
+    <button onclick="goPayment('RON97')">RON 97</button>
+    <button onclick="goPayment('Diesel')">Diesel</button>
+</div>
+
+<!-- PAGE 2: Payment Method -->
+<div id="page2" class="page">
+    <h2>Payment Method</h2>
+    <h3 id="fuelDisplay"></h3>
+
+    <button onclick="payCounter()">Pay at Counter</button>
+    <button onclick="payCard()">Pay by Card</button>
+    <button onclick="payEwallet()">Pay by E-Wallet</button>
+</div>
+
+<!-- PAGE 3: Ask Digital Receipt -->
+<div id="pageReceiptAsk" class="page">
+    <h2>Do you want a digital receipt?</h2>
+    <button onclick="yesReceipt()">Yes</button>
+    <button onclick="noReceipt()">No</button>
+</div>
+
+<!-- PAGE 4: Phone Number Input -->
+<div id="page4" class="page">
+    <h2>Enter Your Phone Number</h2>
+    <p>Malaysia format only</p>
+    <input type="text" id="phone" placeholder="01X-XXXXXXX">
+    <br>
+    <button onclick="submitPhone()">Submit</button>
+
+    <p id="error" style="color:red;"></p>
+</div>
+
+<!-- PAGE 5: Pump Assignment -->
+<div id="page5" class="page">
+    <h2>Payment Complete</h2>
+    <h3 id="pumpInfo"></h3>
+    <p>Please proceed to the assigned pump.</p>
+</div>
+
+<script>
+// Track selected fuel
+let fuelSelected = "";
+// Demo pump assignment
+let availablePump = 3; // You can change this
+
+function show(page){
+    document.querySelectorAll('.page').forEach(p => p.style.display = "none");
+    document.getElementById(page).style.display = "block";
+}
+
+function goPayment(fuel){
+    fuelSelected = fuel;
+    document.getElementById("fuelDisplay").innerText = "Selected Fuel: " + fuel;
+    show("page2");
+}
+
+function payCounter(){
+    alert("Please proceed to the counter to make your payment.");
+    assignPump();
+}
+
+function payCard(){
+    alert("Please tap or insert your card now.");
+    show("pageReceiptAsk");
+}
+
+function payEwallet(){
+    alert("Please wave or scan your QR / e-wallet.");
+    show("pageReceiptAsk");
+}
+
+function yesReceipt(){
+    show("page4");
+}
+
+function noReceipt(){
+    assignPump();
+}
+
+// Malaysia phone validation
+function submitPhone(){
+    let phone = document.getElementById("phone").value;
+    const error = document.getElementById("error");
+
+    // Remove all non-digit characters (dash, space, etc.)
+    phone = phone.replace(/\D/g, "");
+
+    // Malaysia format validation
+    const regex = /^(011\d{8}|01[0-46-9]\d{7})$/;
+
+    if(!regex.test(phone)){
+        error.innerText = "Invalid Malaysia phone number format.";
+        return;
+    }
+
+    alert("Digital receipt will be sent!");
+    assignPump();
+}
+
+// Pump assignment simulation
+function assignPump(){
+    document.getElementById("pumpInfo").innerText = 
+        "Please go to Pump " + availablePump + ".";
+    show("page5");
+}
+
+</script>
+</body>
+</html>
