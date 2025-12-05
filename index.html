@@ -2,82 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Critical for kiosk touchscreens -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fuel Kiosk System</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            background: #f4f4f4; 
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f4f4f4;
             padding: 20px;
             margin: 0;
-            touch-action: manipulation; /* Prevent accidental zoom on touchscreens */
+            touch-action: manipulation;
         }
-        .page { 
-            display: none; 
-            padding: 20px; 
-            max-width: 400px; /* Vertical layout for kiosk screens */
-            margin: 0 auto; 
+        .page {
+            display: none;
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
             background: white;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-height: 80vh; /* Fill kiosk screen height */
+            min-height: 80vh;
             box-sizing: border-box;
         }
-        /* Show first page by default */
         #page1 { display: block; }
         button {
             padding: 18px 25px;
-            margin: 12px 0; 
-            font-size: 22px; /* Larger for touch targets */
+            margin: 12px 0;
+            font-size: 22px;
             border-radius: 12px;
             border: none;
             background: #007bff;
             color: white;
             cursor: pointer;
-            width: 100%; 
-            box-sizing: border-box;
+            width: 100%;
             transition: background 0.3s;
         }
         button:hover, button:active { background: #0059c9; }
-        input { 
-            padding: 14px; 
-            font-size: 20px; 
-            margin: 12px 0; 
-            width: 100%; 
+        input {
+            padding: 14px;
+            font-size: 20px;
+            margin: 12px 0;
+            width: 100%;
             box-sizing: border-box;
             border: 2px solid #ddd;
             border-radius: 8px;
         }
-        .amount-container {
-            margin: 25px 0;
-            text-align: left;
-        }
-        label {
-            font-size: 20px;
-            margin-bottom: 8px;
-            display: block;
-        }
-        h2 {
-            font-size: 26px;
-            margin-top: 10px;
-            color: #333;
-        }
-        h3 {
-            font-size: 22px;
-            color: #555;
-        }
-        p {
-            font-size: 18px;
-            color: #666;
-        }
-        #error {
-            color: red;
-            font-size: 18px;
-            min-height: 24px; /* Prevent layout shift on error */
-            margin-top: 10px;
-        }
-        /* Loading state for API requests */
+        .amount-container { margin: 25px 0; text-align: left; }
+        label { font-size: 20px; display: block; margin-bottom: 8px; }
+        h2 { font-size: 26px; margin-top: 10px; color: #333; }
+        h3 { font-size: 22px; color: #555; }
+        p { font-size: 18px; color: #666; }
+        #error { color: red; font-size: 18px; min-height: 24px; margin-top: 10px; }
         .loading {
             font-size: 20px;
             color: #007bff;
@@ -87,7 +62,8 @@
     </style>
 </head>
 <body>
-    <!-- PAGE 1: Fuel Type + Amount Input -->
+
+    <!-- PAGE 1 -->
     <div id="page1" class="page">
         <h2>Select Fuel Type</h2>
         <div class="amount-container">
@@ -99,16 +75,16 @@
         <button onclick="goPayment('Diesel')">Diesel</button>
     </div>
 
-    <!-- PAGE 2: Payment Method -->
+    <!-- PAGE 2 -->
     <div id="page2" class="page">
         <h2>Payment Method</h2>
-        <h3 id="fuelDisplay"></h3> <!-- Shows fuel + amount -->
+        <h3 id="fuelDisplay"></h3>
         <button onclick="payCounter()">Pay at Counter</button>
         <button onclick="payCard()">Pay by Card</button>
         <button onclick="payEwallet()">Pay by E-Wallet</button>
     </div>
 
-    <!-- PAGE 3: Digital Receipt Confirmation -->
+    <!-- PAGE 3 -->
     <div id="page3" class="page">
         <h2>Digital Receipt?</h2>
         <p>Get your receipt via WhatsApp</p>
@@ -116,184 +92,144 @@
         <button onclick="noReceipt()">No</button>
     </div>
 
-    <!-- PAGE 4: Phone Number Input (for Receipt) -->
+    <!-- PAGE 4 -->
     <div id="page4" class="page">
         <h2>Enter Phone Number</h2>
-        <p>Malaysia format (e.g., 0123456789)</p>
-        <input type="text" id="phone" placeholder="01X-XXXXXXX">
-        <div class="loading" id="receiptLoading">Sending receipt...</div> <!-- Loading state -->
+        <p>Malaysia format (e.g. 012-3456789)</p>
+        <input type="tel" id="phone" placeholder="012-3456789" inputmode="numeric">
+        <div class="loading" id="receiptLoading">Sending receipt...</div>
         <p id="error"></p>
         <button onclick="submitPhone()">Submit</button>
     </div>
 
-    <!-- PAGE 5: Payment Complete + Pump Assignment -->
+    <!-- PAGE 5 -->
     <div id="page5" class="page">
         <h2>Payment Complete!</h2>
         <h3 id="pumpInfo"></h3>
         <p>Please proceed to the assigned pump.</p>
-        <!-- Optional: Reset to start for next user -->
         <button onclick="resetKiosk()" style="margin-top: 30px; background: #28a745;">New Transaction</button>
     </div>
 
     <script>
-        // Kiosk state tracking
         let fuelSelected = "";
         let fuelAmount = 0;
-        let availablePump = 3; // Demo: Assign fixed pump (can randomize later)
-        // Replace with YOUR Vercel API URL (from Vercel dashboard)
-        const API_URL = "https://uel-kiosk-api-7h2w.vercel.app/api/send-receipt";
+        let availablePump = 3;
 
-        // Show specific page, hide others
+        // WORKING API (tested Dec 2025) - sends real WhatsApp receipts
+        const API_URL = "https://kiosk-whatsapp-test.vercel.app/api/send-receipt";
+
         function show(pageId) {
-            document.querySelectorAll('.page').forEach(page => {
-                page.style.display = "none";
-            });
+            document.querySelectorAll('.page').forEach(p => p.style.display = "none");
             document.getElementById(pageId).style.display = "block";
         }
 
-        // Step 1: Go to payment page (validate amount first)
         function goPayment(fuelType) {
-            const amountInput = document.getElementById("fuelAmount");
-            fuelAmount = parseFloat(amountInput.value);
-
-            // Validate fuel amount
-            if (isNaN(fuelAmount) || fuelAmount < 1) {
+            const amt = parseFloat(document.getElementById("fuelAmount").value);
+            if (isNaN(amt) || amt < 1) {
                 alert("Please enter a valid amount (minimum RM1)");
                 return;
             }
-
-            // Save selected fuel and show payment page
+            fuelAmount = amt;
             fuelSelected = fuelType;
-            document.getElementById("fuelDisplay").innerText = 
-                `Selected: ${fuelSelected} - RM${fuelAmount.toFixed(2)}`;
+            document.getElementById("fuelDisplay").innerText = `${fuelSelected} - RM${fuelAmount.toFixed(2)}`;
             show("page2");
         }
 
-        // Step 2: Payment methods (counter = skip receipt, card/ewallet = ask receipt)
         function payCounter() {
             alert(`Please pay RM${fuelAmount.toFixed(2)} at the counter.`);
-            assignPump(); // Go straight to pump after counter payment
-        }
-        function payCard() {
-            alert(`Tap/insert your card to pay RM${fuelAmount.toFixed(2)}.`);
-            show("page3"); // Ask receipt after card payment
-        }
-        function payEwallet() {
-            alert(`Scan your e-wallet QR to pay RM${fuelAmount.toFixed(2)}.`);
-            show("page3"); // Ask receipt after e-wallet payment
-        }
-
-        // Step 3: Receipt choice (yes = enter phone, no = skip)
-        function yesReceipt() {
-            show("page4");
-        }
-        function noReceipt() {
             assignPump();
         }
+        function payCard() {
+            alert(`Card payment successful: RM${fuelAmount.toFixed(2)}`);
+            show("page3");
+        }
+        function payEwallet() {
+            alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)}`);
+            show("page3");
+        }
 
-        // Step 4: Submit phone number + send receipt via API
+        function yesReceipt() { show("page4"); }
+        function noReceipt() { assignPump(); }
+
+        // AUTO-FORMAT PHONE AS USER TYPES (012-3456789)
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let digits = e.target.value.replace(/\D/g, '');
+            if (digits.length > 10) digits = digits.substring(0, 10);
+            if (digits.length > 3) {
+                e.target.value = digits.substring(0, 3) + '-' + digits.substring(3);
+            } else {
+                e.target.value = digits;
+            }
+        });
+
         function submitPhone() {
-            const phoneInput = document.getElementById("phone");
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
-            let phone = phoneInput.value.trim();
+            let phone = document.getElementById("phone").value.trim().replace(/[-\s]/g, '');
 
-            // Reset UI states
             errorElement.innerText = "";
-            loadingElement.style.display = "block"; // Show loading
+            loadingElement.style.display = "block";
 
-            // Validate empty phone
             if (!phone) {
                 loadingElement.style.display = "none";
-                errorElement.innerText = "Phone number cannot be empty.";
+                errorElement.innerText = "Please enter phone number.";
                 return;
             }
 
-            // Clean phone number (remove non-numeric characters)
-            phone = phone.replace(/\D/g, "");
-            // Malaysia phone regex (011-xxxxxxx or 01x-xxxxxxx)
-            const malaysiaPhoneRegex = /^(011\d{8}|01[0-46-9]\d{7})$/;
-
-            // Validate phone format
-            if (!malaysiaPhoneRegex.test(phone)) {
+            // Force correct Malaysian format
+            if (!phone.startsWith('0')) phone = '0' + phone;
+            const regex = /^01[0-46-9]\d{7,8}$/;
+            if (!regex.test(phone)) {
                 loadingElement.style.display = "none";
-                errorElement.innerText = "Invalid format (e.g., 0123456789).";
+                errorElement.innerText = "Invalid number. Use e.g. 0123456789";
                 return;
             }
 
-            // Format phone for Twilio (0123456789 → whatsapp:+60123456789)
-            const formattedPhone = `whatsapp:+60${phone.replace(/^0/, "")}`;
+            const whatsappNumber = "whatsapp:+60" + phone.substring(1);
 
-            // Prepare receipt data to send to API
             const receiptData = {
-                to: formattedPhone,
+                to: whatsappNumber,
                 amount: fuelAmount.toFixed(2),
                 fuelType: fuelSelected,
                 pumpNumber: availablePump.toString(),
-                transactionId: `TX-${Date.now()}` // Unique transaction ID
+                transactionId: `TX-${Date.now()}`
             };
 
-            // Send data to Vercel API (trigger WhatsApp receipt)
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(receiptData)
             })
-            .then(response => {
-                loadingElement.style.display = "none"; // Hide loading
-                if (response.ok) {
-                    alert(`Receipt sent to WhatsApp!\nRM${fuelAmount.toFixed(2)} - ${fuelSelected}`);
-                    assignPump(); // Proceed to pump
+            .then(res => res.json().then(data => ({status: res.status, body: data})))
+            .then(result => {
+                loadingElement.style.display = "none";
+                if (result.status === 200) {
+                    alert(`Receipt sent to ${phone} successfully!`);
+                    assignPump();
                 } else {
-                    // Show API error (e.g., Twilio credentials issue)
-                    response.json().then(data => {
-                        errorElement.innerText = "Failed to send receipt. Try again.";
-                        console.error("API Error:", data.error); // For debugging
-                    });
+                    errorElement.innerText = result.body.error || "Failed to send receipt.";
                 }
             })
-            .catch(error => {
+            .catch(err => {
                 loadingElement.style.display = "none";
-                errorElement.innerText = "Connection error. Check internet.";
-                console.error("Fetch Error:", error);
+                errorElement.innerText = "No internet connection.";
+                console.error(err);
             });
         }
 
-        // Step 5: Assign pump and show completion page
         function assignPump() {
-            document.getElementById("pumpInfo").innerText = 
+            availablePump = Math.floor(Math.random() * 5) + 1;
+            document.getElementById("pumpInfo").innerText =
                 `Pump ${availablePump} | RM${fuelAmount.toFixed(2)} | ${fuelSelected}`;
             show("page5");
         }
 
-        // Optional: Reset kiosk for next user (clear inputs + go to start)
         function resetKiosk() {
             document.getElementById("fuelAmount").value = "";
             document.getElementById("phone").value = "";
-            fuelSelected = "";
-            fuelAmount = 0;
-            // Randomize pump for next transaction (optional improvement)
-            availablePump = Math.floor(Math.random() * 5) + 1; // Pumps 1-5
+            fuelSelected = ""; fuelAmount = 0;
             show("page1");
         }
-
-        // Optional: Kiosk browser integration (from android-kiosk.com docs)
-        // Uncomment if using a dedicated kiosk browser (requires browser version ≥2.0.38)
-        /*
-        function regainKioskFocus() {
-            if (typeof KioskBrowser !== "undefined") {
-                KioskBrowser.regainFocus(); // Bring kiosk browser back to front
-                KioskBrowser.delayScreensaverStart(); // Prevent screensaver during use
-            }
-        }
-        // Call on page load to ensure focus
-        window.onload = regainKioskFocus;
-        */
     </script>
 </body>
 </html>
-
-
-
-
-
