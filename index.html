@@ -63,7 +63,6 @@
 </head>
 <body>
 
-    <!-- PAGE 1 -->
     <div id="page1" class="page">
         <h2>Select Fuel Type</h2>
         <div class="amount-container">
@@ -75,7 +74,6 @@
         <button onclick="goPayment('Diesel')">Diesel</button>
     </div>
 
-    <!-- PAGE 2 -->
     <div id="page2" class="page">
         <h2>Payment Method</h2>
         <h3 id="fuelDisplay"></h3>
@@ -84,7 +82,6 @@
         <button onclick="payEwallet()">Pay by E-Wallet</button>
     </div>
 
-    <!-- PAGE 3 -->
     <div id="page3" class="page">
         <h2>Digital Receipt?</h2>
         <p>Get your receipt via WhatsApp</p>
@@ -92,7 +89,6 @@
         <button onclick="noReceipt()">No</button>
     </div>
 
-    <!-- PAGE 4 -->
     <div id="page4" class="page">
         <h2>Enter Phone Number</h2>
         <p>Malaysia format (e.g. 012-3456789)</p>
@@ -102,8 +98,14 @@
         <button onclick="submitPhone()">Submit</button>
     </div>
 
-    <!-- PAGE 5 -->
     <div id="page5" class="page">
+        <h2>Pumping Option</h2>
+        <p>Choose your preferred service type:</p>
+        <button onclick="selectPumping('Self-Service')">Self-Service</button>
+        <button onclick="selectPumping('Automation')">Automation</button>
+    </div>
+
+    <div id="page6" class="page">
         <h2>Payment Complete!</h2>
         <h3 id="pumpInfo"></h3>
         <p>Please proceed to the assigned pump.</p>
@@ -114,6 +116,8 @@
         let fuelSelected = "";
         let fuelAmount = 0;
         let availablePump = 3;
+        let serviceType = "";
+        let receiptRequested = false;
 
         // WORKING API (tested Dec 2025) - sends real WhatsApp receipts
         const API_URL = "https://fuel-kiosk-api.vercel.app/api/send-receipt";
@@ -137,21 +141,28 @@
 
         function payCounter() {
             alert(`Please pay RM${fuelAmount.toFixed(2)} at the counter.`);
-            assignPump();
+            show("page3"); // Go to Digital Receipt (Page 3)
         }
         function payCard() {
             alert(`Card payment successful: RM${fuelAmount.toFixed(2)}`);
-            show("page3");
+            show("page3"); // Go to Digital Receipt (Page 3)
         }
         function payEwallet() {
             alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)}`);
-            show("page3");
+            show("page3"); // Go to Digital Receipt (Page 3)
         }
 
-        function yesReceipt() { show("page4"); }
-        function noReceipt() { assignPump(); }
+        // --- PAGE 3 FUNCTIONS (Digital Receipt?) ---
+        function yesReceipt() {
+            receiptRequested = true; // Set state
+            show("page4"); // Go to Enter Phone Number (Page 4)
+        }
+        function noReceipt() {
+            receiptRequested = false; // Set state
+            show("page5"); // Skip Phone Number, Go directly to Pumping Option (Page 5)
+        }
 
-        // AUTO-FORMAT PHONE AS USER TYPES (012-3456789)
+        // AUTO-FORMAT PHONE 
         document.getElementById('phone').addEventListener('input', function(e) {
             let digits = e.target.value.replace(/\D/g, '');
             if (digits.length > 10) digits = digits.substring(0, 10);
@@ -162,6 +173,7 @@
             }
         });
 
+        // --- PAGE 4 FUNCTION (Enter Phone Number) ---
         function submitPhone() {
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
@@ -191,10 +203,13 @@
                 to: whatsappNumber,
                 amount: fuelAmount.toFixed(2),
                 fuelType: fuelSelected,
+                serviceType: serviceType, 
                 pumpNumber: availablePump.toString(),
                 transactionId: `TX-${Date.now()}`
             };
 
+            // NOTE: serviceType is empty here, but the receipt API call is triggered for demonstration.
+            
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -205,7 +220,7 @@
                 loadingElement.style.display = "none";
                 if (result.status === 200) {
                     alert(`Receipt sent to ${phone} successfully!`);
-                    assignPump();
+                    show("page5"); // Go to Pumping Option (Page 5)
                 } else {
                     errorElement.innerText = result.body.error || "Failed to send receipt.";
                 }
@@ -217,20 +232,29 @@
             });
         }
 
+        // --- PAGE 5 FUNCTION (Pumping Option) ---
+        function selectPumping(type) {
+            serviceType = type;
+            assignPump(); // Go to Payment Complete (Page 6)
+        }
+
+        // --- PAGE 6 FUNCTION (Payment Complete) ---
         function assignPump() {
             availablePump = Math.floor(Math.random() * 5) + 1;
             document.getElementById("pumpInfo").innerText =
-                `Pump ${availablePump} | RM${fuelAmount.toFixed(2)} | ${fuelSelected}`;
-            show("page5");
+                `Pump ${availablePump} | RM${fuelAmount.toFixed(2)} | ${fuelSelected} | ${serviceType}`;
+            show("page6");
         }
 
         function resetKiosk() {
             document.getElementById("fuelAmount").value = "";
             document.getElementById("phone").value = "";
-            fuelSelected = ""; fuelAmount = 0;
+            fuelSelected = "";
+            fuelAmount = 0;
+            serviceType = "";
+            receiptRequested = false;
             show("page1");
         }
     </script>
 </body>
 </html>
-
