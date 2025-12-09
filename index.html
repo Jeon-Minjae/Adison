@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fuel Kiosk System</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -17,11 +23,14 @@
             align-items: center;
             gap: 20px;
         }
+        
+        /* FUEL INVENTORY SECTION */
         .inventory-container {
             width: 100%;
             max-width: 1000px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
+        
         .inventory-display {
             background: #1a1a1a;
             color: #fff;
@@ -31,6 +40,7 @@
             border: 5px solid #333;
             font-family: 'Courier New', monospace;
         }
+        
         .inventory-title {
             font-size: 20px;
             font-weight: bold;
@@ -40,6 +50,7 @@
             text-shadow: 0 0 5px #00ff00;
             letter-spacing: 1px;
         }
+        
         .inventory-row {
             display: flex;
             justify-content: space-around;
@@ -48,6 +59,7 @@
             gap: 15px;
             margin-bottom: 10px;
         }
+        
         .fuel-box {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 8px;
@@ -59,19 +71,23 @@
             align-items: center;
             border: 2px solid;
         }
+        
         .fuel-info {
             text-align: left;
         }
+        
         .fuel-type {
             color: #00ccff;
             font-weight: bold;
             font-size: 18px;
             margin-bottom: 3px;
         }
+        
         .fuel-price {
             color: #ffcc00;
             font-size: 16px;
         }
+        
         .fuel-remaining {
             color: #ff4444;
             font-weight: bold;
@@ -79,14 +95,17 @@
             text-align: right;
             min-width: 70px;
         }
+        
         .fuel-remaining.low {
             color: #ff9900;
             animation: pulse 1.5s infinite;
         }
+        
         .fuel-remaining.out {
             color: #ff0000;
             animation: blink 1s infinite;
         }
+        
         .timestamp {
             font-size: 16px;
             color: #ccc;
@@ -95,31 +114,212 @@
             padding-top: 10px;
             border-top: 1px solid #444;
         }
+        
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
+        
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
-        .kiosk-container {
-            width: 100%;
-            max-width: 500px;
+        
+        /* KIOSK LAYOUT SECTION */
+        .outer-container {
+            width: 550px;
+            height: 620px;
+            border: 3px solid #008000;
+            padding: 25px;
+            background: #ffffff;
             margin: 0 auto;
         }
+        
+        .top-pumps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .pump-box {
+            width: 180px;
+            height: 80px;
+            border: 2px solid #008000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .pump-box.square-box {
+            position: relative;
+        }
+        
+        .square-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #990000;
+            transition: background-color 0.5s ease;
+        }
+        
+        .square-indicator.fueling {
+            background-color: #ff0000; /* Red during fueling */
+        }
+        
+        .square-indicator.closing {
+            background-color: #00ff00; /* Green during closing phase */
+            border: 1px solid #009900;
+        }
+        
+        .oval {
+            border: 2px solid #0066cc;
+            border-radius: 30px;
+            padding: 8px 25px;
+            background: #ffffff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 120px;
+        }
+        
+        .horizontal-purple {
+            width: 180px;
+            height: 25px;
+            background-color: #ffffff;
+            border: 2px solid #000000;
+            transition: all 0.3s ease;
+        }
+        
+        .vertical-purple {
+            width: 40px;
+            height: 160px;
+            background-color: #ffffff;
+            border: 2px solid #000000;
+            transition: all 0.3s ease;
+        }
+        
+        .purple-spacing {
+            margin: 15px 0;
+        }
+        
+        .pumps-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .kiosk-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        .kiosk-column {
+            width: 180px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        
+        .kiosk-box {
+            width: 100px;
+            height: 160px;
+            border: 2px solid #008000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        /* OCCUPANCY STATES */
+        .occupied {
+            background-color: #000000 !important; /* Black block for occupied */
+            border: 2px solid #000000 !important;
+            color: white !important;
+        }
+        
+        .free {
+            background-color: #ffffff !important; /* White background for free */
+            border: 2px solid #008000 !important; /* Green border for pumps */
+        }
+        
+        .free-border-black {
+            background-color: #ffffff !important;
+            border: 2px solid #000000 !important; /* Black border for kiosks */
+        }
+        
+        /* FUELING PROGRESS */
+        .fueling-progress {
+            width: 100%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .countdown-timer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* PUMP TIMER DISPLAY */
+        .pump-timer {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+        
+        /* KIOSK INTERFACE SECTION */
+        .kiosk-interface-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
         .page {
             display: none;
             padding: 20px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-height: 70vh;
             box-sizing: border-box;
             border: 3px solid #ccc;
         }
+        
         #page1 { display: block; }
+        
         button {
             padding: 18px 25px;
             margin: 12px 0;
@@ -132,7 +332,9 @@
             width: 100%;
             transition: background 0.3s;
         }
+        
         button:hover, button:active { background: #0059c9; }
+        
         input {
             padding: 14px;
             font-size: 20px;
@@ -142,51 +344,229 @@
             border: 2px solid #ddd;
             border-radius: 8px;
         }
+        
         .amount-container { margin: 25px 0; text-align: left; }
+        
         label { font-size: 20px; display: block; margin-bottom: 8px; }
+        
         h2 { font-size: 26px; margin-top: 10px; color: #333; }
+        
         h3 { font-size: 22px; color: #555; }
+        
         p { font-size: 18px; color: #666; }
+        
         #error { color: red; font-size: 18px; min-height: 24px; margin-top: 10px; }
+        
         .loading {
             font-size: 20px;
             color: #007bff;
             margin: 20px 0;
             display: none;
         }
+        
         .phone-format-example {
             font-size: 16px;
             color: #666;
             margin: 5px 0 15px 0;
         }
+        
+        .reset-button {
+            margin-top: 30px;
+            background: #28a745;
+        }
+        
+        .simulation-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+        
+        .simulation-controls button {
+            padding: 12px;
+            font-size: 16px;
+            margin: 5px;
+            background: #6c757d;
+        }
+        
+        .auto-complete-notice {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #0066cc;
+        }
+        
+        /* KIOSK CUSTOMER INFO */
+        .kiosk-customer-info {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2px 5px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+        
+        /* LEDGER VIEW BUTTON - CHANGED POSITION */
+        .ledger-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: #6c757d;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: background 0.3s ease;
+        }
+        
+        .ledger-button:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        /* LAYOUT CONTAINERS */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        
+        .layout-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+        }
+        
+        .layout-left {
+            flex: 1;
+            min-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .layout-right {
+            flex: 1;
+            min-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; /* Added for ledger button positioning */
+        }
+        
+        /* Transaction ledger button container */
+        .ledger-button-container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        @media (max-width: 1200px) {
+            .layout-section {
+                flex-direction: column;
+            }
+            
+            .layout-left, .layout-right {
+                min-width: 100%;
+            }
+            
+            .ledger-button {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                margin-top: 20px;
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+        
         @media (max-width: 900px) {
             .inventory-row {
                 flex-direction: column;
                 align-items: stretch;
             }
+            
             .fuel-box {
                 min-width: 100%;
             }
+            
+            .outer-container {
+                width: 90%;
+                height: auto;
+                padding: 15px;
+            }
+            
+            .kiosk-box {
+                height: 120px;
+            }
+            
+            .vertical-purple {
+                height: 120px;
+            }
         }
+        
         @media (max-width: 600px) {
             .inventory-title {
                 font-size: 18px;
             }
+            
             .fuel-type {
                 font-size: 16px;
             }
+            
             .fuel-price {
                 font-size: 14px;
             }
+            
             .fuel-remaining {
                 font-size: 20px;
+            }
+            
+            .top-pumps {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .kiosk-section {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+            
+            .kiosk-column {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .ledger-button {
+                padding: 10px 15px;
+                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Small Fuel Inventory Display at the top -->
+    <!-- FUEL INVENTORY DISPLAY -->
     <div class="inventory-container">
         <div class="inventory-display">
             <div class="inventory-title">FUEL INVENTORY</div>
@@ -199,71 +579,211 @@
         </div>
     </div>
 
-    <!-- Main Kiosk Interface (taking most space below inventory) -->
-    <div class="kiosk-container">
-        <div id="page1" class="page">
-            <h2>Select Fuel Type</h2>
-            <div class="amount-container">
-                <label for="fuelAmount">Enter Fuel Amount (RM):</label>
-                <input type="number" id="fuelAmount" placeholder="e.g., 50" min="1" step="1" required>
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+        <div class="layout-section">
+            <!-- LEFT SIDE: KIOSK INTERFACE -->
+            <div class="layout-left">
+                <div class="kiosk-interface-container">
+                    <div id="page1" class="page">
+                        <h2>Select Fuel Type</h2>
+                        <div class="amount-container">
+                            <label for="fuelAmount">Enter Fuel Amount (RM):</label>
+                            <input type="number" id="fuelAmount" placeholder="e.g., 50" min="1" step="1" required>
+                        </div>
+                        <button onclick="goPayment('RON95')">RON 95</button>
+                        <button onclick="goPayment('RON97')">RON 97</button>
+                        <button onclick="goPayment('Diesel')">Diesel</button>
+                        
+                        <!-- Simulation Controls -->
+                        <div class="simulation-controls">
+                            <h3>Simulation Controls</h3>
+                            <p>Test the occupancy flow:</p>
+                            <button onclick="simulateCustomerAtLeftKiosk()">Simulate Customer at Left Kiosk</button>
+                            <button onclick="simulateCustomerAtRightKiosk()">Simulate Customer at Right Kiosk</button>
+                            <button onclick="manuallyCompleteAllPumps()">Manually Complete All Pumps</button>
+                            <button onclick="clearAllKiosks()">Clear All Kiosks</button>
+                        </div>
+                    </div>
+
+                    <div id="page2" class="page">
+                        <h2>Payment Method</h2>
+                        <h3 id="fuelDisplay"></h3>
+                        <p id="litresInfo"></p>
+                        <!-- Removed Pay at Counter button -->
+                        <button onclick="payCard()">Pay by Card</button>
+                        <button onclick="payEwallet()">Pay by E-Wallet</button>
+                    </div>
+
+                    <div id="page3" class="page">
+                        <h2>Digital Receipt?</h2>
+                        <p>Get your receipt via WhatsApp</p>
+                        <button onclick="yesReceipt()">Yes</button>
+                        <button onclick="noReceipt()">No</button>
+                    </div>
+
+                    <div id="page4" class="page">
+                        <h2>Enter Phone Number</h2>
+                        <p>Malaysia mobile number format:</p>
+                        <div class="phone-format-example">
+                            Examples:<br>
+                            • 010-1234567 (7 digits)<br>
+                            • 011-12345678 (8 digits)<br>
+                            • 012-3456789 (7 digits)
+                        </div>
+                        <input type="tel" id="phone" placeholder="e.g., 012-3456789" inputmode="numeric" maxlength="12">
+                        <div class="loading" id="receiptLoading">Sending receipt...</div>
+                        <p id="error"></p>
+                        <button onclick="submitPhone()">Submit</button>
+                    </div>
+
+                    <div id="page5" class="page">
+                        <h2>Pumping Option</h2>
+                        <p>Choose your preferred service type:</p>
+                        <button onclick="selectPumping('Automation')">Automation</button>
+                        <button onclick="selectPumping('Self-Service')">Self-Service</button>
+                    </div>
+
+                    <div id="page6" class="page">
+                        <h2>Payment Complete!</h2>
+                        <h3 id="pumpInfo"></h3>
+                        <p id="pumpInstructions"></p>
+                        
+                        <!-- Progress bar for auto-fueling -->
+                        <div class="fueling-progress" id="fuelingProgress">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="countdown-timer" id="countdownTimer">
+                            Auto-completing in: <span id="countdownSeconds">30</span> seconds
+                        </div>
+                        
+                        <div class="auto-complete-notice">
+                            ⏰ Pump will automatically free up in 30 seconds
+                        </div>
+                        
+                        <button onclick="simulateFuelingComplete()">Simulate Fueling Complete Now</button>
+                        <button onclick="resetKiosk()" class="reset-button">New Transaction</button>
+                    </div>
+                    
+                    <!-- NEW PAGE: TRANSACTION LEDGER -->
+                    <div id="page7" class="page">
+                        <h2>Transaction Ledger</h2>
+                        <p>All fuel station transactions recorded in Firebase</p>
+                        <div id="ledgerContainer">
+                            <p>Loading transactions...</p>
+                        </div>
+                        <button onclick="show('page1')" class="reset-button">Back to Main</button>
+                    </div>
+                </div>
             </div>
-            <button onclick="goPayment('RON95')">RON 95</button>
-            <button onclick="goPayment('RON97')">RON 97</button>
-            <button onclick="goPayment('Diesel')">Diesel</button>
-        </div>
+            
+            <!-- RIGHT SIDE: KIOSK LAYOUT DIAGRAM -->
+            <div class="layout-right">
+                <div class="outer-container">
+                    <!-- TOP AREA -->
+                    <div class="top-pumps">
+                        <div class="pump-box square-box" id="pump3">
+                            Automation<br>Pump 3
+                            <div class="square-indicator fueling" id="pump3Square"></div>
+                            <div class="pump-timer" id="pump3Timer"></div>
+                        </div>
+                        <div class="oval">1 person</div>
+                        <div class="pump-box square-box" id="pump4">
+                            Automation<br>Pump 4
+                            <div class="square-indicator fueling" id="pump4Square"></div>
+                            <div class="pump-timer" id="pump4Timer"></div>
+                        </div>
+                    </div>
 
-        <div id="page2" class="page">
-            <h2>Payment Method</h2>
-            <h3 id="fuelDisplay"></h3>
-            <p id="litresInfo"></p>
-            <button onclick="payCounter()">Pay at Counter</button>
-            <button onclick="payCard()">Pay by Card</button>
-            <button onclick="payEwallet()">Pay by E-Wallet</button>
-        </div>
+                    <div class="pumps-row purple-spacing">
+                        <div class="horizontal-purple" id="path3"></div>
+                        <div></div>
+                        <div class="horizontal-purple" id="path4"></div>
+                    </div>
 
-        <div id="page3" class="page">
-            <h2>Digital Receipt?</h2>
-            <p>Get your receipt via WhatsApp</p>
-            <button onclick="yesReceipt()">Yes</button>
-            <button onclick="noReceipt()">No</button>
-        </div>
+                    <!-- MIDDLE -->
+                    <div class="pumps-row">
+                        <div class="pump-box" id="pump1">
+                            Self-service<br>Pump 1
+                            <div class="pump-timer" id="pump1Timer"></div>
+                        </div>
+                        <div class="pump-box" id="pump2">
+                            Self-service<br>Pump 2
+                            <div class="pump-timer" id="pump2Timer"></div>
+                        </div>
+                    </div>
 
-        <div id="page4" class="page">
-            <h2>Enter Phone Number</h2>
-            <p>Malaysia mobile number format:</p>
-            <div class="phone-format-example">
-                Examples:<br>
-                • 010-1234567 (7 digits)<br>
-                • 011-12345678 (8 digits)<br>
-                • 012-3456789 (7 digits)
+                    <div class="pumps-row purple-spacing">
+                        <div class="horizontal-purple" id="path1"></div>
+                        <div class="horizontal-purple" id="path2"></div>
+                    </div>
+
+                    <!-- BOTTOM -->
+                    <div class="kiosk-section">
+                        <!-- Column under Pump 1 -->
+                        <div class="kiosk-column">
+                            <div class="kiosk-box" id="leftKiosk">
+                                kiosk
+                                <div class="kiosk-customer-info" id="leftKioskCustomer"></div>
+                            </div>
+                            <div class="vertical-purple" id="leftVertical"></div>
+                        </div>
+
+                        <!-- Column under Pump 2 -->
+                        <div class="kiosk-column">
+                            <div class="kiosk-box" id="rightKiosk">
+                                kiosk
+                                <div class="kiosk-customer-info" id="rightKioskCustomer"></div>
+                            </div>
+                            <div class="vertical-purple" id="rightVertical"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- LEDGER VIEW BUTTON - MOVED TO BOTTOM-RIGHT -->
+                <button class="ledger-button" onclick="showLedger()">📊 View Transaction Ledger</button>
             </div>
-            <input type="tel" id="phone" placeholder="e.g., 012-3456789" inputmode="numeric" maxlength="12">
-            <div class="loading" id="receiptLoading">Sending receipt...</div>
-            <p id="error"></p>
-            <button onclick="submitPhone()">Submit</button>
-        </div>
-
-        <div id="page5" class="page">
-            <h2>Pumping Option</h2>
-            <p>Choose your preferred service type:</p>
-            <button onclick="selectPumping('Self-Service')">Self-Service</button>
-            <button onclick="selectPumping('Automation')">Automation</button>
-        </div>
-
-        <div id="page6" class="page">
-            <h2>Payment Complete!</h2>
-            <h3 id="pumpInfo"></h3>
-            <p>Please proceed to the assigned pump.</p>
-            <button onclick="resetKiosk()" style="margin-top: 30px; background: #28a745;">New Transaction</button>
         </div>
     </div>
+
+    <!-- FIREBASE CONFIGURATION -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8uc6VUtJ5bZpMP2cxyxET5yyW0gizpvk",
+            authDomain: "adison-abbb5.firebaseapp.com",
+            projectId: "adison-abbb5",
+            storageBucket: "adison-abbb5.firebasestorage.app",
+            messagingSenderId: "565780016276",
+            appId: "1:565780016276:web:6e643bb26f75c32f4fd881",
+            measurementId: "G-NGHLVC90GX"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        // Make Firebase functions available globally
+        window.firebaseDb = db;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseGetDocs = getDocs;
+        
+        console.log("✅ Firebase initialized! Database ready for fuel transactions.");
+    </script>
 
     <script>
         // Fuel prices in Malaysia (RM per litre) - Update as needed
         const FUEL_PRICES = {
-            'RON95': 2.05,   // RM 2.05 per litre
-            'RON97': 3.47,   // RM 3.47 per litre
-            'Diesel': 2.15   // RM 2.15 per litre
+            'RON95': 2.05,
+            'RON97': 3.47,
+            'Diesel': 2.15
         };
         
         // Initial inventory - 100 litres of each fuel type
@@ -273,13 +793,34 @@
             'Diesel': 100
         };
         
+        // System State
         let fuelSelected = "";
         let fuelAmount = 0;
         let fuelLitres = 0;
-        let availablePump = 3;
+        let assignedPump = 0;
         let serviceType = "";
         let receiptRequested = false;
-        let paymentMethod = ""; // Track payment method
+        let paymentMethod = "";
+        let currentKiosk = null; // 'left', 'right', or null - tracks which kiosk is currently being used
+        let currentCustomerName = "Customer";
+        
+        // Track customers at each kiosk independently
+        let kioskCustomers = {
+            'left': { occupied: false },
+            'right': { occupied: false }
+        };
+        
+        // Pump states: object to track each pump's state and timer
+        let pumpStates = {
+            'pump1': { occupied: false, timer: null, secondsRemaining: 30, interval: null, fuelingPhase: true },
+            'pump2': { occupied: false, timer: null, secondsRemaining: 30, interval: null, fuelingPhase: true },
+            'pump3': { occupied: false, timer: null, secondsRemaining: 40, interval: null, fuelingPhase: true },
+            'pump4': { occupied: false, timer: null, secondsRemaining: 40, interval: null, fuelingPhase: true }
+        };
+        
+        // Current page timers (for the progress bar on page 6)
+        let currentPageTimer = null;
+        let currentPageInterval = null;
 
         // WORKING API (tested Dec 2025) - sends real WhatsApp receipts
         const API_URL = "https://fuel-kiosk-api.vercel.app/api/send-receipt";
@@ -290,6 +831,128 @@
             
             // Update inventory display whenever any page is shown
             updateInventoryDisplay();
+        }
+
+        // Function to record transaction to Firebase
+        async function recordTransactionToLedger() {
+            try {
+                if (!window.firebaseDb) {
+                    console.error("Firebase not initialized yet");
+                    return null;
+                }
+                
+                const transactionRecord = {
+                    transactionId: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    timestamp: new Date().toISOString(),
+                    customerInfo: {
+                        phoneNumber: document.getElementById("phone").value || "N/A",
+                        kioskLocation: currentKiosk || "N/A"
+                    },
+                    fuelTransaction: {
+                        fuelType: fuelSelected,
+                        amount: fuelAmount,
+                        litres: fuelLitres.toFixed(2),
+                        pricePerLitre: FUEL_PRICES[fuelSelected],
+                        pumpNumber: assignedPump,
+                        serviceType: serviceType
+                    },
+                    paymentInfo: {
+                        method: paymentMethod,
+                        status: "completed",
+                        receiptRequested: receiptRequested
+                    },
+                    stationInfo: {
+                        stationId: "DRIVETHRU-001",
+                        location: "IoT Fuel Station",
+                        transactionType: "Drive-Thru"
+                    },
+                    systemInfo: {
+                        inventoryBefore: fuelInventory[fuelSelected] + fuelLitres,
+                        inventoryAfter: fuelInventory[fuelSelected],
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                // Add to Firestore
+                const docRef = await window.firebaseAddDoc(
+                    window.firebaseCollection(window.firebaseDb, "transactions"),
+                    transactionRecord
+                );
+                
+                console.log("✅ Transaction recorded to ledger with ID:", docRef.id);
+                return docRef.id;
+                
+            } catch (error) {
+                console.error("❌ Error recording transaction:", error);
+                return null;
+            }
+        }
+
+        // Function to view ledger
+        async function showLedger() {
+            show("page7");
+            const ledgerContainer = document.getElementById("ledgerContainer");
+            ledgerContainer.innerHTML = "<p>Loading transactions...</p>";
+            
+            try {
+                const querySnapshot = await window.firebaseGetDocs(
+                    window.firebaseCollection(window.firebaseDb, "transactions")
+                );
+                
+                if (querySnapshot.empty) {
+                    ledgerContainer.innerHTML = "<p>No transactions recorded yet.</p>";
+                    return;
+                }
+                
+                let ledgerHTML = `
+                    <div style="text-align: left; margin: 20px 0;">
+                        <h3>Total Transactions: ${querySnapshot.size}</h3>
+                        <div style="overflow-x: auto;">
+                            <table border="1" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: #f2f2f2;">
+                                        <th style="padding: 10px;">Time</th>
+                                        <th style="padding: 10px;">Fuel Type</th>
+                                        <th style="padding: 10px;">Amount (RM)</th>
+                                        <th style="padding: 10px;">Litres</th>
+                                        <th style="padding: 10px;">Payment</th>
+                                        <th style="padding: 10px;">Pump</th>
+                                        <th style="padding: 10px;">Service</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const time = new Date(data.timestamp).toLocaleTimeString();
+                    
+                    ledgerHTML += `
+                        <tr>
+                            <td style="padding: 8px;">${time}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction.fuelType}</td>
+                            <td style="padding: 8px;">RM${data.fuelTransaction.amount.toFixed(2)}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction.litres}L</td>
+                            <td style="padding: 8px;">${data.paymentInfo.method}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction.pumpNumber}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction.serviceType}</td>
+                        </tr>
+                    `;
+                });
+                
+                ledgerHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                
+                ledgerContainer.innerHTML = ledgerHTML;
+                
+            } catch (error) {
+                console.error("Error loading ledger:", error);
+                ledgerContainer.innerHTML = `<p style="color: red;">Error loading transactions: ${error.message}</p>`;
+            }
         }
 
         // Update the fuel inventory display
@@ -345,7 +1008,344 @@
             document.getElementById('lastUpdated').textContent = timeString;
         }
 
+        // Update all visual states
+        function updateVisualStates() {
+            // Update kiosks
+            const leftKiosk = document.getElementById('leftKiosk');
+            const leftVertical = document.getElementById('leftVertical');
+            const leftCustomerInfo = document.getElementById('leftKioskCustomer');
+            const rightKiosk = document.getElementById('rightKiosk');
+            const rightVertical = document.getElementById('rightVertical');
+            const rightCustomerInfo = document.getElementById('rightKioskCustomer');
+            
+            // Update left kiosk
+            if (kioskCustomers.left.occupied) {
+                leftKiosk.classList.remove('free-border-black');
+                leftKiosk.classList.add('occupied');
+                leftVertical.classList.remove('free');
+                leftVertical.classList.add('occupied');
+                if (leftCustomerInfo) {
+                    leftCustomerInfo.style.display = 'none';
+                }
+            } else {
+                leftKiosk.classList.remove('occupied');
+                leftKiosk.classList.add('free-border-black');
+                leftVertical.classList.remove('occupied');
+                leftVertical.classList.add('free');
+                if (leftCustomerInfo) {
+                    leftCustomerInfo.style.display = 'none';
+                }
+            }
+            
+            // Update right kiosk
+            if (kioskCustomers.right.occupied) {
+                rightKiosk.classList.remove('free-border-black');
+                rightKiosk.classList.add('occupied');
+                rightVertical.classList.remove('free');
+                rightVertical.classList.add('occupied');
+                if (rightCustomerInfo) {
+                    rightCustomerInfo.style.display = 'none';
+                }
+            } else {
+                rightKiosk.classList.remove('occupied');
+                rightKiosk.classList.add('free-border-black');
+                rightVertical.classList.remove('occupied');
+                rightVertical.classList.add('free');
+                if (rightCustomerInfo) {
+                    rightCustomerInfo.style.display = 'none';
+                }
+            }
+            
+            // Update pumps
+            for (const [pumpId, pumpState] of Object.entries(pumpStates)) {
+                const pumpElement = document.getElementById(pumpId);
+                const pathElement = document.getElementById(`path${pumpId.slice(-1)}`);
+                const timerElement = document.getElementById(`${pumpId}Timer`);
+                
+                if (pumpElement) {
+                    if (pumpState.occupied) {
+                        pumpElement.classList.remove('free');
+                        pumpElement.classList.add('occupied');
+                        if (timerElement) {
+                            timerElement.style.display = 'block';
+                            timerElement.textContent = `${pumpState.secondsRemaining}s`;
+                        }
+                    } else {
+                        pumpElement.classList.remove('occupied');
+                        pumpElement.classList.add('free');
+                        if (timerElement) {
+                            timerElement.style.display = 'none';
+                        }
+                    }
+                }
+                
+                if (pathElement) {
+                    if (pumpState.occupied) {
+                        pathElement.classList.remove('free');
+                        pathElement.classList.add('occupied');
+                    } else {
+                        pathElement.classList.remove('occupied');
+                        pathElement.classList.add('free');
+                    }
+                }
+                
+                // Handle square indicator for Automation pumps (3 and 4)
+                if (pumpId === 'pump3' || pumpId === 'pump4') {
+                    const squareElement = document.getElementById(`${pumpId}Square`);
+                    if (squareElement) {
+                        if (pumpState.occupied) {
+                            if (pumpState.fuelingPhase === false && pumpState.secondsRemaining > 0) {
+                                // Closing phase - green
+                                squareElement.classList.remove('fueling');
+                                squareElement.classList.add('closing');
+                            } else {
+                                // Fueling phase - red
+                                squareElement.classList.remove('closing');
+                                squareElement.classList.add('fueling');
+                            }
+                            squareElement.style.display = 'block';
+                        } else {
+                            squareElement.style.display = 'none';
+                        }
+                    }
+                }
+            }
+        }
+
+        // Start auto-fueling countdown for a specific pump
+        function startPumpCountdown(pumpNumber) {
+            const pumpId = `pump${pumpNumber}`;
+            const pumpState = pumpStates[pumpId];
+            
+            // Clear any existing timer for this pump
+            if (pumpState.timer) {
+                clearTimeout(pumpState.timer);
+            }
+            if (pumpState.interval) {
+                clearInterval(pumpState.interval);
+            }
+            
+            // Set total time based on pump type
+            const isAutomationPump = pumpNumber === 3 || pumpNumber === 4;
+            const totalSeconds = isAutomationPump ? 40 : 30; // 40 seconds for Automation, 30 for Self-Service
+            
+            // Reset countdown
+            pumpState.secondsRemaining = totalSeconds;
+            pumpState.fuelingPhase = true; // Track if we're in fueling phase
+            
+            // Update timer display
+            updateVisualStates();
+            
+            // Start countdown interval
+            pumpState.interval = setInterval(() => {
+                pumpState.secondsRemaining--;
+                
+                // Check if we've completed the 30-second fueling phase for Automation pumps
+                if (isAutomationPump && pumpState.secondsRemaining === 10 && pumpState.fuelingPhase) {
+                    // Switch from fueling to closing phase
+                    pumpState.fuelingPhase = false;
+                    
+                    // Update square indicator
+                    const pumpElement = document.getElementById(pumpId);
+                    if (pumpElement) {
+                        const squareElement = document.getElementById(`${pumpId}Square`);
+                        if (squareElement) {
+                            squareElement.classList.remove('fueling');
+                            squareElement.classList.add('closing');
+                        }
+                    }
+                    console.log(`Pump ${pumpNumber}: Worker is now closing the fuel tank (10 seconds)`);
+                }
+                
+                updateVisualStates(); // Update timer display
+                
+                if (pumpState.secondsRemaining <= 0) {
+                    completeFuelingForPump(pumpNumber);
+                }
+            }, 1000);
+            
+            // Set timeout for completion
+            pumpState.timer = setTimeout(() => {
+                completeFuelingForPump(pumpNumber);
+            }, totalSeconds * 1000);
+        }
+
+        // Complete fueling for a specific pump
+        function completeFuelingForPump(pumpNumber) {
+            const pumpId = `pump${pumpNumber}`;
+            const pumpState = pumpStates[pumpId];
+            
+            // Clear timers
+            if (pumpState.timer) {
+                clearTimeout(pumpState.timer);
+                pumpState.timer = null;
+            }
+            if (pumpState.interval) {
+                clearInterval(pumpState.interval);
+                pumpState.interval = null;
+            }
+            
+            // Free the pump
+            pumpState.occupied = false;
+            pumpState.secondsRemaining = pumpNumber === 3 || pumpNumber === 4 ? 40 : 30;
+            pumpState.fuelingPhase = true; // Reset for next use
+            
+            // Update visual states
+            updateVisualStates();
+            
+            console.log(`Pump ${pumpNumber} has been freed automatically.`);
+        }
+
+        // Start page countdown (for the progress bar on page 6)
+        function startPageCountdown() {
+            // Clear any existing page timers
+            if (currentPageTimer) {
+                clearTimeout(currentPageTimer);
+            }
+            if (currentPageInterval) {
+                clearInterval(currentPageInterval);
+            }
+            
+            // Reset countdown
+            let secondsRemaining = 30;
+            const progressBar = document.getElementById('progressBar');
+            const fuelingProgress = document.getElementById('fuelingProgress');
+            const countdownTimer = document.getElementById('countdownTimer');
+            const countdownSeconds = document.getElementById('countdownSeconds');
+            
+            fuelingProgress.style.display = 'block';
+            countdownTimer.style.display = 'block';
+            progressBar.style.width = '0%';
+            countdownSeconds.textContent = secondsRemaining;
+            
+            // Update progress bar and countdown every second
+            let progress = 0;
+            const progressStep = 100 / 30; // 30 seconds total
+            
+            currentPageInterval = setInterval(() => {
+                secondsRemaining--;
+                countdownSeconds.textContent = secondsRemaining;
+                
+                progress += progressStep;
+                progressBar.style.width = `${progress}%`;
+                
+                // Change color when 10 seconds remaining
+                if (secondsRemaining <= 10) {
+                    progressBar.style.backgroundColor = '#ff9800';
+                }
+                
+                if (secondsRemaining <= 5) {
+                    progressBar.style.backgroundColor = '#f44336';
+                }
+                
+                if (secondsRemaining <= 0) {
+                    clearInterval(currentPageInterval);
+                }
+            }, 1000);
+            
+            // Set timer for auto-completion
+            currentPageTimer = setTimeout(() => {
+                // Don't free pump here - each pump has its own timer
+            }, 30000); // 30 seconds
+        }
+
+        // Simulation functions for testing
+        function simulateCustomerAtLeftKiosk() {
+            if (kioskCustomers.left.occupied) {
+                // If already occupied, ask if we want to clear it
+                if (confirm("Left kiosk is already occupied. Clear it first?")) {
+                    kioskCustomers.left.occupied = false;
+                    updateVisualStates();
+                    alert("Left kiosk has been cleared.");
+                }
+                return;
+            }
+            
+            // Set new customer at left kiosk
+            kioskCustomers.left.occupied = true;
+            
+            // Auto-fill some values for testing
+            document.getElementById("fuelAmount").value = "33.31"; // 9.6 litres of RON97
+            updateVisualStates();
+            alert("Customer has parked at the left kiosk. Left kiosk is now occupied.");
+        }
+
+        function simulateCustomerAtRightKiosk() {
+            if (kioskCustomers.right.occupied) {
+                // If already occupied, ask if we want to clear it
+                if (confirm("Right kiosk is already occupied. Clear it first?")) {
+                    kioskCustomers.right.occupied = false;
+                    updateVisualStates();
+                    alert("Right kiosk has been cleared.");
+                }
+                return;
+            }
+            
+            // Set new customer at right kiosk
+            kioskCustomers.right.occupied = true;
+            
+            // Auto-fill some values for testing
+            document.getElementById("fuelAmount").value = "50";
+            updateVisualStates();
+            alert("Customer has parked at the right kiosk. Right kiosk is now occupied.");
+        }
+
+        function clearAllKiosks() {
+            kioskCustomers.left.occupied = false;
+            kioskCustomers.right.occupied = false;
+            currentKiosk = null;
+            updateVisualStates();
+            alert("Both kiosks have been cleared.");
+        }
+
+        function manuallyCompleteAllPumps() {
+            for (let i = 1; i <= 4; i++) {
+                const pumpId = `pump${i}`;
+                const pumpState = pumpStates[pumpId];
+                
+                if (pumpState.occupied) {
+                    completeFuelingForPump(i);
+                }
+            }
+            alert("All occupied pumps have been manually completed.");
+        }
+
         function goPayment(fuelType) {
+            // Check if there's a customer at any kiosk
+            let availableKiosks = [];
+            if (kioskCustomers.left.occupied) availableKiosks.push('left');
+            if (kioskCustomers.right.occupied) availableKiosks.push('right');
+            
+            if (availableKiosks.length === 0) {
+                alert("Please simulate a customer parking at a kiosk first!");
+                return;
+            }
+            
+            // If multiple kiosks have customers, ask which one to process
+            if (availableKiosks.length > 1) {
+                const kioskChoice = prompt(
+                    `Multiple kiosks have customers:\n` +
+                    `1. Left kiosk\n` +
+                    `2. Right kiosk\n` +
+                    `Enter 1 or 2 to select which kiosk to process:`
+                );
+                
+                if (kioskChoice === '1') {
+                    currentKiosk = 'left';
+                } else if (kioskChoice === '2') {
+                    currentKiosk = 'right';
+                } else {
+                    alert("Invalid choice. Please try again.");
+                    return;
+                }
+            } else {
+                // Only one kiosk has a customer
+                currentKiosk = availableKiosks[0];
+            }
+            
+            // Set generic customer name
+            currentCustomerName = "Customer";
+            
             const amt = parseFloat(document.getElementById("fuelAmount").value);
             if (isNaN(amt) || amt < 1) {
                 alert("Please enter a valid amount (minimum RM1)");
@@ -374,39 +1374,49 @@
             fuelSelected = fuelType;
             
             document.getElementById("fuelDisplay").innerText = `${fuelSelected} - RM${fuelAmount.toFixed(2)}`;
-            document.getElementById("litresInfo").innerText = `Quantity: ${litres.toFixed(2)} litres`;
+            document.getElementById("litresInfo").innerText = `${litres.toFixed(2)} litres`;
             
             show("page2");
         }
 
-        function payCounter() {
-            paymentMethod = "Counter";
-            alert(`Please pay RM${fuelAmount.toFixed(2)} at the counter for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}.`);
-            // Skip digital receipt and go directly to pumping option for counter payment
-            show("page5"); // Go directly to Pumping Option (Page 5)
-        }
-        
-        function payCard() {
+        async function payCard() {
             paymentMethod = "Card";
-            alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}`);
-            show("page3"); // Go to Digital Receipt (Page 3) for card payment
+            
+            // Record transaction to Firebase ledger
+            const ledgerId = await recordTransactionToLedger();
+            
+            if (ledgerId) {
+                alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n✅ Transaction recorded to ledger (ID: ${ledgerId})`);
+            } else {
+                alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n⚠️ Payment processed but ledger recording failed`);
+            }
+            
+            show("page3");
         }
         
-        function payEwallet() {
+        async function payEwallet() {
             paymentMethod = "E-Wallet";
-            alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}`);
-            show("page3"); // Go to Digital Receipt (Page 3) for e-wallet payment
+            
+            // Record transaction to Firebase ledger
+            const ledgerId = await recordTransactionToLedger();
+            
+            if (ledgerId) {
+                alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n✅ Transaction recorded to ledger (ID: ${ledgerId})`);
+            } else {
+                alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n⚠️ Payment processed but ledger recording failed`);
+            }
+            
+            show("page3");
         }
 
-        // --- PAGE 3 FUNCTIONS (Digital Receipt?) ---
         function yesReceipt() {
-            receiptRequested = true; // Set state
-            show("page4"); // Go to Enter Phone Number (Page 4)
+            receiptRequested = true;
+            show("page4");
         }
         
         function noReceipt() {
-            receiptRequested = false; // Set state
-            show("page5"); // Skip Phone Number, Go directly to Pumping Option (Page 5)
+            receiptRequested = false;
+            show("page5");
         }
 
         // AUTO-FORMAT PHONE with Malaysian number rules
@@ -434,69 +1444,55 @@
             }
         });
 
-        // Function to validate Malaysian mobile number
         function isValidMalaysianMobile(number) {
-            // Remove all non-digits
             const digits = number.replace(/\D/g, '');
             
-            // Must start with 0
             if (!digits.startsWith('0')) return false;
             
-            // Check prefix and length
             const prefix = digits.substring(0, 3);
             
-            // 011 prefix - should have 11 digits total (011 + 8 digits)
             if (prefix === '011') {
                 return digits.length === 11;
             }
             
-            // Other valid prefixes (010, 012, 013, 014, 016, 017, 018, 019)
             const validPrefixes = ['010', '012', '013', '014', '016', '017', '018', '019'];
             if (validPrefixes.includes(prefix)) {
-                return digits.length === 10; // Should have 10 digits total
+                return digits.length === 10;
             }
             
             return false;
         }
 
-        // Function to format phone for WhatsApp API
         function formatForWhatsApp(malaysianNumber) {
             const digits = malaysianNumber.replace(/\D/g, '');
             
-            // Malaysian number: remove leading 0, add +60
             if (digits.startsWith('0')) {
                 return 'whatsapp:+60' + digits.substring(1);
             }
             
-            // If it doesn't start with 0, assume it's already in international format
             return 'whatsapp:+' + digits;
         }
 
-        // --- PAGE 4 FUNCTION (Enter Phone Number) ---
         function submitPhone() {
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
             const phoneInput = document.getElementById("phone").value.trim();
             
-            // Clear previous errors
             errorElement.innerText = "";
             loadingElement.style.display = "block";
 
-            // Check if empty
             if (!phoneInput) {
                 loadingElement.style.display = "none";
                 errorElement.innerText = "Please enter phone number.";
                 return;
             }
 
-            // Validate Malaysian mobile number format
             if (!isValidMalaysianMobile(phoneInput)) {
                 loadingElement.style.display = "none";
                 errorElement.innerText = "Invalid Malaysian mobile number.\n\nExamples:\n• 010-1234567 (7 digits)\n• 011-12345678 (8 digits)\n• 012-3456789 (7 digits)";
                 return;
             }
 
-            // Format for WhatsApp API
             const whatsappNumber = formatForWhatsApp(phoneInput);
 
             const receiptData = {
@@ -507,7 +1503,7 @@
                 pricePerLitre: FUEL_PRICES[fuelSelected].toFixed(2),
                 serviceType: serviceType,
                 paymentMethod: paymentMethod,
-                pumpNumber: availablePump.toString(),
+                pumpNumber: assignedPump.toString(),
                 transactionId: `TX-${Date.now()}`
             };
 
@@ -521,7 +1517,7 @@
                 loadingElement.style.display = "none";
                 if (result.status === 200) {
                     alert(`Receipt sent to ${phoneInput} successfully!`);
-                    show("page5"); // Go to Pumping Option (Page 5)
+                    show("page5");
                 } else {
                     errorElement.innerText = result.body.error || "Failed to send receipt.";
                 }
@@ -533,47 +1529,131 @@
             });
         }
 
-        // --- PAGE 5 FUNCTION (Pumping Option) ---
         function selectPumping(type) {
             serviceType = type;
-            assignPump(); // Go to Payment Complete (Page 6)
+            assignPump();
         }
 
-        // --- PAGE 6 FUNCTION (Payment Complete) ---
         function assignPump() {
-            availablePump = Math.floor(Math.random() * 5) + 1;
+            // Free the current kiosk (customer moves to pump)
+            if (currentKiosk) {
+                kioskCustomers[currentKiosk].occupied = false;
+            }
             
-            // Deduct fuel from inventory after payment is complete
+            // Determine available pumps based on service type
+            let availablePumps = [];
+            
+            if (serviceType === 'Automation') {
+                // Automation pumps: 3 and 4 only
+                if (!pumpStates.pump3.occupied) availablePumps.push(3);
+                if (!pumpStates.pump4.occupied) availablePumps.push(4);
+            } else if (serviceType === 'Self-Service') {
+                // Self-service pumps: 1 and 2 only
+                if (!pumpStates.pump1.occupied) availablePumps.push(1);
+                if (!pumpStates.pump2.occupied) availablePumps.push(2);
+            }
+            
+            if (availablePumps.length === 0) {
+                alert(`No ${serviceType} pumps available! Please wait or choose another service type.`);
+                // Put customer back at kiosk
+                if (currentKiosk) {
+                    kioskCustomers[currentKiosk].occupied = true;
+                }
+                updateVisualStates();
+                return;
+            }
+            
+            // Randomly assign an available pump
+            const randomIndex = Math.floor(Math.random() * availablePumps.length);
+            assignedPump = availablePumps[randomIndex];
+            
+            // Occupy the assigned pump
+            const pumpState = pumpStates[`pump${assignedPump}`];
+            pumpState.occupied = true;
+            
+            // Start countdown for this pump
+            startPumpCountdown(assignedPump);
+            
+            // Update fuel inventory
             if (fuelInventory[fuelSelected] >= fuelLitres) {
                 fuelInventory[fuelSelected] -= fuelLitres;
                 
-                // Check if fuel is running low
                 if (fuelInventory[fuelSelected] < 20) {
                     alert(`Warning: ${fuelSelected} is running low (${fuelInventory[fuelSelected].toFixed(1)}L remaining)`);
                 }
                 
-                // Check if fuel is out of stock
                 if (fuelInventory[fuelSelected] <= 0) {
                     alert(`Notice: ${fuelSelected} is now out of stock`);
                     fuelInventory[fuelSelected] = 0;
                 }
             }
             
-            // Update inventory display
             updateInventoryDisplay();
+            updateVisualStates();
             
-            // Update pump info with payment method
             document.getElementById("pumpInfo").innerHTML = 
-                `Pump ${availablePump}<br>
+                `Assigned: Pump ${assignedPump}<br>
                 ${fuelLitres.toFixed(2)}L ${fuelSelected}<br>
                 RM${fuelAmount.toFixed(2)}<br>
                 Payment: ${paymentMethod}<br>
                 Service: ${serviceType}`;
                 
+            document.getElementById("pumpInstructions").innerHTML = 
+                `Customer has moved from ${currentKiosk} kiosk to Pump ${assignedPump}.<br>
+                Pump ${assignedPump} is now occupied (black block).`;
+            
+            // Clear current kiosk tracking
+            currentKiosk = null;
+            
+            // Start page countdown (for the progress bar)
+            setTimeout(() => {
+                startPageCountdown();
+            }, 500); // Small delay to ensure page is loaded
+                
             show("page6");
         }
 
+        function simulateFuelingComplete() {
+            // Clear page timers
+            if (currentPageTimer) {
+                clearTimeout(currentPageTimer);
+                currentPageTimer = null;
+            }
+            if (currentPageInterval) {
+                clearInterval(currentPageInterval);
+                currentPageInterval = null;
+            }
+            
+            // Hide progress bar and countdown
+            document.getElementById('fuelingProgress').style.display = 'none';
+            document.getElementById('countdownTimer').style.display = 'none';
+            
+            if (assignedPump === 0) {
+                alert("No pump is currently assigned!");
+                return;
+            }
+            
+            // Complete fueling for the current pump
+            completeFuelingForPump(assignedPump);
+            
+            // Show completion message
+            alert(`Customer has finished fueling at Pump ${assignedPump}. Pump ${assignedPump} is now free (white border with green outline).`);
+            
+            // Reset for next transaction
+            assignedPump = 0;
+        }
+
         function resetKiosk() {
+            // Clear page timers
+            if (currentPageTimer) {
+                clearTimeout(currentPageTimer);
+                currentPageTimer = null;
+            }
+            if (currentPageInterval) {
+                clearInterval(currentPageInterval);
+                currentPageInterval = null;
+            }
+            
             document.getElementById("fuelAmount").value = "";
             document.getElementById("phone").value = "";
             fuelSelected = "";
@@ -582,11 +1662,16 @@
             serviceType = "";
             paymentMethod = "";
             receiptRequested = false;
+            currentKiosk = null;
+            currentCustomerName = "Customer";
             show("page1");
         }
         
         // Initialize inventory display
         updateInventoryDisplay();
+        
+        // Initialize visual states
+        updateVisualStates();
         
         // Update timestamp every second
         setInterval(updateTimestamp, 1000);
