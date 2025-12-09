@@ -12,17 +12,112 @@
             padding: 20px;
             margin: 0;
             touch-action: manipulation;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .inventory-container {
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 10px;
+        }
+        .inventory-display {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 5px solid #333;
+            font-family: 'Courier New', monospace;
+        }
+        .inventory-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ff00;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #00ff00;
+            letter-spacing: 1px;
+        }
+        .inventory-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        .fuel-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid;
+        }
+        .fuel-info {
+            text-align: left;
+        }
+        .fuel-type {
+            color: #00ccff;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+        .fuel-price {
+            color: #ffcc00;
+            font-size: 16px;
+        }
+        .fuel-remaining {
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 22px;
+            text-align: right;
+            min-width: 70px;
+        }
+        .fuel-remaining.low {
+            color: #ff9900;
+            animation: pulse 1.5s infinite;
+        }
+        .fuel-remaining.out {
+            color: #ff0000;
+            animation: blink 1s infinite;
+        }
+        .timestamp {
+            font-size: 16px;
+            color: #ccc;
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .kiosk-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
         }
         .page {
             display: none;
             padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
             background: white;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-height: 80vh;
+            min-height: 70vh;
             box-sizing: border-box;
+            border: 3px solid #ccc;
         }
         #page1 { display: block; }
         button {
@@ -59,65 +154,132 @@
             margin: 20px 0;
             display: none;
         }
+        .phone-format-example {
+            font-size: 16px;
+            color: #666;
+            margin: 5px 0 15px 0;
+        }
+        @media (max-width: 900px) {
+            .inventory-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .fuel-box {
+                min-width: 100%;
+            }
+        }
+        @media (max-width: 600px) {
+            .inventory-title {
+                font-size: 18px;
+            }
+            .fuel-type {
+                font-size: 16px;
+            }
+            .fuel-price {
+                font-size: 14px;
+            }
+            .fuel-remaining {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div id="page1" class="page">
-        <h2>Select Fuel Type</h2>
-        <div class="amount-container">
-            <label for="fuelAmount">Enter Fuel Amount (RM):</label>
-            <input type="number" id="fuelAmount" placeholder="e.g., 50" min="1" step="1" required>
+    <!-- Small Fuel Inventory Display at the top -->
+    <div class="inventory-container">
+        <div class="inventory-display">
+            <div class="inventory-title">FUEL INVENTORY</div>
+            <div class="inventory-row" id="fuelInventory">
+                <!-- Fuel items will be inserted here by JavaScript -->
+            </div>
+            <div class="timestamp">
+                Last Updated: <span id="lastUpdated">--:--:--</span>
+            </div>
         </div>
-        <button onclick="goPayment('RON95')">RON 95</button>
-        <button onclick="goPayment('RON97')">RON 97</button>
-        <button onclick="goPayment('Diesel')">Diesel</button>
     </div>
 
-    <div id="page2" class="page">
-        <h2>Payment Method</h2>
-        <h3 id="fuelDisplay"></h3>
-        <button onclick="payCounter()">Pay at Counter</button>
-        <button onclick="payCard()">Pay by Card</button>
-        <button onclick="payEwallet()">Pay by E-Wallet</button>
-    </div>
+    <!-- Main Kiosk Interface (taking most space below inventory) -->
+    <div class="kiosk-container">
+        <div id="page1" class="page">
+            <h2>Select Fuel Type</h2>
+            <div class="amount-container">
+                <label for="fuelAmount">Enter Fuel Amount (RM):</label>
+                <input type="number" id="fuelAmount" placeholder="e.g., 50" min="1" step="1" required>
+            </div>
+            <button onclick="goPayment('RON95')">RON 95</button>
+            <button onclick="goPayment('RON97')">RON 97</button>
+            <button onclick="goPayment('Diesel')">Diesel</button>
+        </div>
 
-    <div id="page3" class="page">
-        <h2>Digital Receipt?</h2>
-        <p>Get your receipt via WhatsApp</p>
-        <button onclick="yesReceipt()">Yes</button>
-        <button onclick="noReceipt()">No</button>
-    </div>
+        <div id="page2" class="page">
+            <h2>Payment Method</h2>
+            <h3 id="fuelDisplay"></h3>
+            <p id="litresInfo"></p>
+            <button onclick="payCounter()">Pay at Counter</button>
+            <button onclick="payCard()">Pay by Card</button>
+            <button onclick="payEwallet()">Pay by E-Wallet</button>
+        </div>
 
-    <div id="page4" class="page">
-        <h2>Enter Phone Number</h2>
-        <p>Malaysia format (e.g. 012-3456789)</p>
-        <input type="tel" id="phone" placeholder="012-3456789" inputmode="numeric">
-        <div class="loading" id="receiptLoading">Sending receipt...</div>
-        <p id="error"></p>
-        <button onclick="submitPhone()">Submit</button>
-    </div>
+        <div id="page3" class="page">
+            <h2>Digital Receipt?</h2>
+            <p>Get your receipt via WhatsApp</p>
+            <button onclick="yesReceipt()">Yes</button>
+            <button onclick="noReceipt()">No</button>
+        </div>
 
-    <div id="page5" class="page">
-        <h2>Pumping Option</h2>
-        <p>Choose your preferred service type:</p>
-        <button onclick="selectPumping('Self-Service')">Self-Service</button>
-        <button onclick="selectPumping('Automation')">Automation</button>
-    </div>
+        <div id="page4" class="page">
+            <h2>Enter Phone Number</h2>
+            <p>Malaysia mobile number format:</p>
+            <div class="phone-format-example">
+                Examples:<br>
+                • 010-1234567 (7 digits)<br>
+                • 011-12345678 (8 digits)<br>
+                • 012-3456789 (7 digits)
+            </div>
+            <input type="tel" id="phone" placeholder="e.g., 012-3456789" inputmode="numeric" maxlength="12">
+            <div class="loading" id="receiptLoading">Sending receipt...</div>
+            <p id="error"></p>
+            <button onclick="submitPhone()">Submit</button>
+        </div>
 
-    <div id="page6" class="page">
-        <h2>Payment Complete!</h2>
-        <h3 id="pumpInfo"></h3>
-        <p>Please proceed to the assigned pump.</p>
-        <button onclick="resetKiosk()" style="margin-top: 30px; background: #28a745;">New Transaction</button>
+        <div id="page5" class="page">
+            <h2>Pumping Option</h2>
+            <p>Choose your preferred service type:</p>
+            <button onclick="selectPumping('Self-Service')">Self-Service</button>
+            <button onclick="selectPumping('Automation')">Automation</button>
+        </div>
+
+        <div id="page6" class="page">
+            <h2>Payment Complete!</h2>
+            <h3 id="pumpInfo"></h3>
+            <p>Please proceed to the assigned pump.</p>
+            <button onclick="resetKiosk()" style="margin-top: 30px; background: #28a745;">New Transaction</button>
+        </div>
     </div>
 
     <script>
+        // Fuel prices in Malaysia (RM per litre) - Update as needed
+        const FUEL_PRICES = {
+            'RON95': 2.05,   // RM 2.05 per litre
+            'RON97': 3.47,   // RM 3.47 per litre
+            'Diesel': 2.15   // RM 2.15 per litre
+        };
+        
+        // Initial inventory - 100 litres of each fuel type
+        let fuelInventory = {
+            'RON95': 100,
+            'RON97': 100,
+            'Diesel': 100
+        };
+        
         let fuelSelected = "";
         let fuelAmount = 0;
+        let fuelLitres = 0;
         let availablePump = 3;
         let serviceType = "";
         let receiptRequested = false;
+        let paymentMethod = ""; // Track payment method
 
         // WORKING API (tested Dec 2025) - sends real WhatsApp receipts
         const API_URL = "https://fuel-kiosk-api.vercel.app/api/send-receipt";
@@ -125,6 +287,62 @@
         function show(pageId) {
             document.querySelectorAll('.page').forEach(p => p.style.display = "none");
             document.getElementById(pageId).style.display = "block";
+            
+            // Update inventory display whenever any page is shown
+            updateInventoryDisplay();
+        }
+
+        // Update the fuel inventory display
+        function updateInventoryDisplay() {
+            const inventoryElement = document.getElementById("fuelInventory");
+            let inventoryHTML = '';
+            
+            // Define colors for each fuel type
+            const fuelColors = {
+                'RON95': '#00ccff',
+                'RON97': '#ff66cc',
+                'Diesel': '#ffcc00'
+            };
+            
+            // Create horizontal layout for all fuel types
+            for (const [fuelType, remaining] of Object.entries(fuelInventory)) {
+                const price = FUEL_PRICES[fuelType];
+                const isLow = remaining < 20;
+                const isOut = remaining <= 0;
+                
+                // Determine status class
+                let statusClass = '';
+                if (isOut) statusClass = 'out';
+                else if (isLow) statusClass = 'low';
+                
+                inventoryHTML += `
+                    <div class="fuel-box" style="border-color: ${fuelColors[fuelType]}">
+                        <div class="fuel-info">
+                            <div class="fuel-type">${fuelType}</div>
+                            <div class="fuel-price">RM${price.toFixed(2)}/L</div>
+                        </div>
+                        <div class="fuel-remaining ${statusClass}">
+                            ${remaining.toFixed(1)} L
+                        </div>
+                    </div>
+                `;
+            }
+            
+            inventoryElement.innerHTML = inventoryHTML;
+            
+            // Update timestamp
+            updateTimestamp();
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('lastUpdated').textContent = timeString;
         }
 
         function goPayment(fuelType) {
@@ -133,23 +351,51 @@
                 alert("Please enter a valid amount (minimum RM1)");
                 return;
             }
+            
+            // Check if selected fuel type is available
+            if (fuelInventory[fuelType] <= 0) {
+                alert(`Sorry, ${fuelType} is out of stock. Please select another fuel type.`);
+                return;
+            }
+            
+            // Calculate litres based on price
+            const pricePerLitre = FUEL_PRICES[fuelType];
+            const litres = amt / pricePerLitre;
+            
+            // Check if enough fuel in inventory
+            if (litres > fuelInventory[fuelType]) {
+                const maxAmount = fuelInventory[fuelType] * pricePerLitre;
+                alert(`Only RM${maxAmount.toFixed(2)} worth of ${fuelType} available (${fuelInventory[fuelType].toFixed(1)}L)`);
+                return;
+            }
+            
             fuelAmount = amt;
+            fuelLitres = litres;
             fuelSelected = fuelType;
+            
             document.getElementById("fuelDisplay").innerText = `${fuelSelected} - RM${fuelAmount.toFixed(2)}`;
+            document.getElementById("litresInfo").innerText = `Quantity: ${litres.toFixed(2)} litres`;
+            
             show("page2");
         }
 
         function payCounter() {
-            alert(`Please pay RM${fuelAmount.toFixed(2)} at the counter.`);
-            show("page3"); // Go to Digital Receipt (Page 3)
+            paymentMethod = "Counter";
+            alert(`Please pay RM${fuelAmount.toFixed(2)} at the counter for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}.`);
+            // Skip digital receipt and go directly to pumping option for counter payment
+            show("page5"); // Go directly to Pumping Option (Page 5)
         }
+        
         function payCard() {
-            alert(`Card payment successful: RM${fuelAmount.toFixed(2)}`);
-            show("page3"); // Go to Digital Receipt (Page 3)
+            paymentMethod = "Card";
+            alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}`);
+            show("page3"); // Go to Digital Receipt (Page 3) for card payment
         }
+        
         function payEwallet() {
-            alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)}`);
-            show("page3"); // Go to Digital Receipt (Page 3)
+            paymentMethod = "E-Wallet";
+            alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}`);
+            show("page3"); // Go to Digital Receipt (Page 3) for e-wallet payment
         }
 
         // --- PAGE 3 FUNCTIONS (Digital Receipt?) ---
@@ -157,59 +403,114 @@
             receiptRequested = true; // Set state
             show("page4"); // Go to Enter Phone Number (Page 4)
         }
+        
         function noReceipt() {
             receiptRequested = false; // Set state
             show("page5"); // Skip Phone Number, Go directly to Pumping Option (Page 5)
         }
 
-        // AUTO-FORMAT PHONE 
+        // AUTO-FORMAT PHONE with Malaysian number rules
         document.getElementById('phone').addEventListener('input', function(e) {
             let digits = e.target.value.replace(/\D/g, '');
-            if (digits.length > 10) digits = digits.substring(0, 10);
+            
+            // Remove leading zeros after first 0
             if (digits.length > 3) {
-                e.target.value = digits.substring(0, 3) + '-' + digits.substring(3);
+                let prefix = digits.substring(0, 3);
+                let suffix = digits.substring(3);
+                
+                // For 011 numbers (8 digits after prefix)
+                if (prefix === '011') {
+                    if (suffix.length > 8) suffix = suffix.substring(0, 8);
+                } 
+                // For 010, 012, 013, 014, 016, 017, 018, 019 (7 digits after prefix)
+                else {
+                    if (suffix.length > 7) suffix = suffix.substring(0, 7);
+                }
+                
+                digits = prefix + suffix;
+                e.target.value = prefix + '-' + suffix;
             } else {
                 e.target.value = digits;
             }
         });
 
+        // Function to validate Malaysian mobile number
+        function isValidMalaysianMobile(number) {
+            // Remove all non-digits
+            const digits = number.replace(/\D/g, '');
+            
+            // Must start with 0
+            if (!digits.startsWith('0')) return false;
+            
+            // Check prefix and length
+            const prefix = digits.substring(0, 3);
+            
+            // 011 prefix - should have 11 digits total (011 + 8 digits)
+            if (prefix === '011') {
+                return digits.length === 11;
+            }
+            
+            // Other valid prefixes (010, 012, 013, 014, 016, 017, 018, 019)
+            const validPrefixes = ['010', '012', '013', '014', '016', '017', '018', '019'];
+            if (validPrefixes.includes(prefix)) {
+                return digits.length === 10; // Should have 10 digits total
+            }
+            
+            return false;
+        }
+
+        // Function to format phone for WhatsApp API
+        function formatForWhatsApp(malaysianNumber) {
+            const digits = malaysianNumber.replace(/\D/g, '');
+            
+            // Malaysian number: remove leading 0, add +60
+            if (digits.startsWith('0')) {
+                return 'whatsapp:+60' + digits.substring(1);
+            }
+            
+            // If it doesn't start with 0, assume it's already in international format
+            return 'whatsapp:+' + digits;
+        }
+
         // --- PAGE 4 FUNCTION (Enter Phone Number) ---
         function submitPhone() {
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
-            let phone = document.getElementById("phone").value.trim().replace(/[-\s]/g, '');
-
+            const phoneInput = document.getElementById("phone").value.trim();
+            
+            // Clear previous errors
             errorElement.innerText = "";
             loadingElement.style.display = "block";
 
-            if (!phone) {
+            // Check if empty
+            if (!phoneInput) {
                 loadingElement.style.display = "none";
                 errorElement.innerText = "Please enter phone number.";
                 return;
             }
 
-            // Force correct Malaysian format
-            if (!phone.startsWith('0')) phone = '0' + phone;
-            const regex = /^01[0-46-9]\d{7,8}$/;
-            if (!regex.test(phone)) {
+            // Validate Malaysian mobile number format
+            if (!isValidMalaysianMobile(phoneInput)) {
                 loadingElement.style.display = "none";
-                errorElement.innerText = "Invalid number. Use e.g. 0123456789";
+                errorElement.innerText = "Invalid Malaysian mobile number.\n\nExamples:\n• 010-1234567 (7 digits)\n• 011-12345678 (8 digits)\n• 012-3456789 (7 digits)";
                 return;
             }
 
-            const whatsappNumber = "whatsapp:+60" + phone.substring(1);
+            // Format for WhatsApp API
+            const whatsappNumber = formatForWhatsApp(phoneInput);
 
             const receiptData = {
                 to: whatsappNumber,
                 amount: fuelAmount.toFixed(2),
+                litres: fuelLitres.toFixed(2),
                 fuelType: fuelSelected,
-                serviceType: serviceType, 
+                pricePerLitre: FUEL_PRICES[fuelSelected].toFixed(2),
+                serviceType: serviceType,
+                paymentMethod: paymentMethod,
                 pumpNumber: availablePump.toString(),
                 transactionId: `TX-${Date.now()}`
             };
 
-            // NOTE: serviceType is empty here, but the receipt API call is triggered for demonstration.
-            
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -219,7 +520,7 @@
             .then(result => {
                 loadingElement.style.display = "none";
                 if (result.status === 200) {
-                    alert(`Receipt sent to ${phone} successfully!`);
+                    alert(`Receipt sent to ${phoneInput} successfully!`);
                     show("page5"); // Go to Pumping Option (Page 5)
                 } else {
                     errorElement.innerText = result.body.error || "Failed to send receipt.";
@@ -241,8 +542,34 @@
         // --- PAGE 6 FUNCTION (Payment Complete) ---
         function assignPump() {
             availablePump = Math.floor(Math.random() * 5) + 1;
-            document.getElementById("pumpInfo").innerText =
-                `Pump ${availablePump} | RM${fuelAmount.toFixed(2)} | ${fuelSelected} | ${serviceType}`;
+            
+            // Deduct fuel from inventory after payment is complete
+            if (fuelInventory[fuelSelected] >= fuelLitres) {
+                fuelInventory[fuelSelected] -= fuelLitres;
+                
+                // Check if fuel is running low
+                if (fuelInventory[fuelSelected] < 20) {
+                    alert(`Warning: ${fuelSelected} is running low (${fuelInventory[fuelSelected].toFixed(1)}L remaining)`);
+                }
+                
+                // Check if fuel is out of stock
+                if (fuelInventory[fuelSelected] <= 0) {
+                    alert(`Notice: ${fuelSelected} is now out of stock`);
+                    fuelInventory[fuelSelected] = 0;
+                }
+            }
+            
+            // Update inventory display
+            updateInventoryDisplay();
+            
+            // Update pump info with payment method
+            document.getElementById("pumpInfo").innerHTML = 
+                `Pump ${availablePump}<br>
+                ${fuelLitres.toFixed(2)}L ${fuelSelected}<br>
+                RM${fuelAmount.toFixed(2)}<br>
+                Payment: ${paymentMethod}<br>
+                Service: ${serviceType}`;
+                
             show("page6");
         }
 
@@ -251,10 +578,18 @@
             document.getElementById("phone").value = "";
             fuelSelected = "";
             fuelAmount = 0;
+            fuelLitres = 0;
             serviceType = "";
+            paymentMethod = "";
             receiptRequested = false;
             show("page1");
         }
+        
+        // Initialize inventory display
+        updateInventoryDisplay();
+        
+        // Update timestamp every second
+        setInterval(updateTimestamp, 1000);
     </script>
 </body>
 </html>
