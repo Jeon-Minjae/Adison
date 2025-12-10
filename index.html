@@ -134,6 +134,7 @@
             padding: 25px;
             background: #ffffff;
             margin: 0 auto;
+            margin-bottom: 70px; /* Add space for the button below */
         }
         
         .top-pumps {
@@ -413,11 +414,11 @@
             display: none;
         }
         
-        /* LEDGER VIEW BUTTON - CHANGED POSITION */
+        /* LEDGER VIEW BUTTON - FIXED POSITION */
         .ledger-button {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: -60px; /* Position below the kiosk container */
+            right: 0;
             background: #6c757d;
             color: white;
             padding: 12px 20px;
@@ -428,6 +429,7 @@
             font-size: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             transition: background 0.3s ease;
+            margin-top: 10px;
         }
         
         .ledger-button:hover {
@@ -468,16 +470,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative; /* Added for ledger button positioning */
-        }
-        
-        /* Transaction ledger button container */
-        .ledger-button-container {
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-            display: flex;
-            justify-content: flex-end;
+            position: relative; /* For ledger button positioning */
         }
         
         @media (max-width: 1200px) {
@@ -496,6 +489,11 @@
                 margin-top: 20px;
                 width: 100%;
                 max-width: 500px;
+                align-self: center;
+            }
+            
+            .outer-container {
+                margin-bottom: 20px;
             }
         }
         
@@ -560,6 +558,7 @@
             .ledger-button {
                 padding: 10px 15px;
                 font-size: 14px;
+                max-width: 90%;
             }
         }
     </style>
@@ -610,7 +609,6 @@
                         <h2>Payment Method</h2>
                         <h3 id="fuelDisplay"></h3>
                         <p id="litresInfo"></p>
-                        <!-- Removed Pay at Counter button -->
                         <button onclick="payCard()">Pay by Card</button>
                         <button onclick="payEwallet()">Pay by E-Wallet</button>
                     </div>
@@ -740,7 +738,7 @@
                     </div>
                 </div>
                 
-                <!-- LEDGER VIEW BUTTON - MOVED TO BOTTOM-RIGHT -->
+                <!-- LEDGER VIEW BUTTON - FIXED POSITION BELOW KIOSK -->
                 <button class="ledger-button" onclick="showLedger()">📊 View Transaction Ledger</button>
             </div>
         </div>
