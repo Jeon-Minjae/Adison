@@ -831,13 +831,17 @@
             updateInventoryDisplay();
         }
 
-        // Function to record transaction to Firebase
+        // Function to record transaction to Firebase - FIXED VERSION
         async function recordTransactionToLedger() {
             try {
                 if (!window.firebaseDb) {
                     console.error("Firebase not initialized yet");
                     return null;
                 }
+                
+                // Get current pump and service type - use 0 and "N/A" if not set
+                const pumpNumber = assignedPump || 0;
+                const serviceTypeUsed = serviceType || "N/A";
                 
                 const transactionRecord = {
                     transactionId: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -851,8 +855,8 @@
                         amount: fuelAmount,
                         litres: fuelLitres.toFixed(2),
                         pricePerLitre: FUEL_PRICES[fuelSelected],
-                        pumpNumber: assignedPump,
-                        serviceType: serviceType
+                        pumpNumber: pumpNumber, // FIXED: Use the variable here
+                        serviceType: serviceTypeUsed // FIXED: Use the variable here
                     },
                     paymentInfo: {
                         method: paymentMethod,
@@ -925,6 +929,10 @@
                     const data = doc.data();
                     const time = new Date(data.timestamp).toLocaleTimeString();
                     
+                    // Use actual pump and service values from transaction record
+                    const pumpValue = data.fuelTransaction.pumpNumber || 0;
+                    const serviceValue = data.fuelTransaction.serviceType || "N/A";
+                    
                     ledgerHTML += `
                         <tr>
                             <td style="padding: 8px;">${time}</td>
@@ -932,8 +940,8 @@
                             <td style="padding: 8px;">RM${data.fuelTransaction.amount.toFixed(2)}</td>
                             <td style="padding: 8px;">${data.fuelTransaction.litres}L</td>
                             <td style="padding: 8px;">${data.paymentInfo.method}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.pumpNumber}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.serviceType}</td>
+                            <td style="padding: 8px;">${pumpValue}</td>
+                            <td style="padding: 8px;">${serviceValue}</td>
                         </tr>
                     `;
                 });
@@ -1471,6 +1479,7 @@
             return 'whatsapp:+' + digits;
         }
 
+        // FIXED: submitPhone function without pump number in receipt if not assigned
         function submitPhone() {
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
@@ -1493,6 +1502,7 @@
 
             const whatsappNumber = formatForWhatsApp(phoneInput);
 
+            // Create receipt data WITHOUT pumpNumber if it's 0 or not assigned
             const receiptData = {
                 to: whatsappNumber,
                 amount: fuelAmount.toFixed(2),
@@ -1501,7 +1511,8 @@
                 pricePerLitre: FUEL_PRICES[fuelSelected].toFixed(2),
                 serviceType: serviceType,
                 paymentMethod: paymentMethod,
-                pumpNumber: assignedPump.toString(),
+                // Only include pumpNumber if it's assigned (not 0)
+                ...(assignedPump > 0 && { pumpNumber: assignedPump.toString() }),
                 transactionId: `TX-${Date.now()}`
             };
 
