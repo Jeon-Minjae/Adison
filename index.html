@@ -804,6 +804,9 @@
         let currentKiosk = null; // 'left', 'right', or null - tracks which kiosk is currently being used
         let currentCustomerName = "Customer";
         
+        // NEW: Store transaction data temporarily until pump is assigned
+        let pendingTransactionData = null;
+        
         // Track customers at each kiosk independently
         let kioskCustomers = {
             'left': { occupied: false },
@@ -833,33 +836,34 @@
             updateInventoryDisplay();
         }
 
-        // Function to record transaction to Firebase
-        async function recordTransactionToLedger() {
+        // Function to record transaction to Firebase - UPDATED VERSION
+        async function recordTransactionToLedger(transactionData = null) {
             try {
                 if (!window.firebaseDb) {
                     console.error("Firebase not initialized yet");
                     return null;
                 }
                 
-                const transactionRecord = {
+                // Use provided transaction data or create from current state
+                const dataToRecord = transactionData || {
                     transactionId: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                     timestamp: new Date().toISOString(),
                     customerInfo: {
-                        phoneNumber: document.getElementById("phone").value || "N/A",
+                        phoneNumber: document.getElementById("phone")?.value || "N/A",
                         kioskLocation: currentKiosk || "N/A"
                     },
                     fuelTransaction: {
-                        fuelType: fuelSelected,
-                        amount: fuelAmount,
-                        litres: fuelLitres.toFixed(2),
-                        pricePerLitre: FUEL_PRICES[fuelSelected],
-                        pumpNumber: assignedPump,
-                        serviceType: serviceType
+                        fuelType: fuelSelected || "UNKNOWN",
+                        amount: fuelAmount || 0,
+                        litres: (fuelLitres || 0).toFixed(2),
+                        pricePerLitre: FUEL_PRICES[fuelSelected] || 0,
+                        pumpNumber: assignedPump || 0,
+                        serviceType: serviceType || "UNKNOWN"
                     },
                     paymentInfo: {
-                        method: paymentMethod,
+                        method: paymentMethod || "UNKNOWN",
                         status: "completed",
-                        receiptRequested: receiptRequested
+                        receiptRequested: receiptRequested || false
                     },
                     stationInfo: {
                         stationId: "DRIVETHRU-001",
@@ -867,19 +871,27 @@
                         transactionType: "Drive-Thru"
                     },
                     systemInfo: {
-                        inventoryBefore: fuelInventory[fuelSelected] + fuelLitres,
-                        inventoryAfter: fuelInventory[fuelSelected],
+                        inventoryBefore: fuelInventory[fuelSelected] + (fuelLitres || 0),
+                        inventoryAfter: fuelInventory[fuelSelected] || 0,
                         timestamp: new Date().toISOString()
                     }
                 };
                 
+                console.log("📝 Recording transaction to Firebase:", dataToRecord);
+                
                 // Add to Firestore
                 const docRef = await window.firebaseAddDoc(
                     window.firebaseCollection(window.firebaseDb, "transactions"),
-                    transactionRecord
+                    dataToRecord
                 );
                 
                 console.log("✅ Transaction recorded to ledger with ID:", docRef.id);
+                
+                // Clear pending transaction data after successful recording
+                if (pendingTransactionData) {
+                    pendingTransactionData = null;
+                }
+                
                 return docRef.id;
                 
             } catch (error) {
@@ -927,15 +939,19 @@
                     const data = doc.data();
                     const time = new Date(data.timestamp).toLocaleTimeString();
                     
+                    // Extract pump number and service type from the transaction data
+                    const pumpNumber = data.fuelTransaction?.pumpNumber || 0;
+                    const serviceType = data.fuelTransaction?.serviceType || "N/A";
+                    
                     ledgerHTML += `
                         <tr>
                             <td style="padding: 8px;">${time}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.fuelType}</td>
-                            <td style="padding: 8px;">RM${data.fuelTransaction.amount.toFixed(2)}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.litres}L</td>
-                            <td style="padding: 8px;">${data.paymentInfo.method}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.pumpNumber}</td>
-                            <td style="padding: 8px;">${data.fuelTransaction.serviceType}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction?.fuelType || "N/A"}</td>
+                            <td style="padding: 8px;">RM${(data.fuelTransaction?.amount || 0).toFixed(2)}</td>
+                            <td style="padding: 8px;">${data.fuelTransaction?.litres || "0"}L</td>
+                            <td style="padding: 8px;">${data.paymentInfo?.method || "N/A"}</td>
+                            <td style="padding: 8px;">${pumpNumber}</td>
+                            <td style="padding: 8px;">${serviceType}</td>
                         </tr>
                     `;
                 });
@@ -1382,14 +1398,41 @@
         async function payCard() {
             paymentMethod = "Card";
             
-            // Record transaction to Firebase ledger
-            const ledgerId = await recordTransactionToLedger();
+            // Store transaction data temporarily (without pump and service info yet)
+            pendingTransactionData = {
+                transactionId: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date().toISOString(),
+                customerInfo: {
+                    phoneNumber: document.getElementById("phone")?.value || "N/A",
+                    kioskLocation: currentKiosk || "N/A"
+                },
+                fuelTransaction: {
+                    fuelType: fuelSelected || "UNKNOWN",
+                    amount: fuelAmount || 0,
+                    litres: (fuelLitres || 0).toFixed(2),
+                    pricePerLitre: FUEL_PRICES[fuelSelected] || 0,
+                    pumpNumber: 0, // Will be updated later
+                    serviceType: "Pending" // Will be updated later
+                },
+                paymentInfo: {
+                    method: paymentMethod || "UNKNOWN",
+                    status: "payment-completed",
+                    receiptRequested: receiptRequested || false
+                },
+                stationInfo: {
+                    stationId: "DRIVETHRU-001",
+                    location: "IoT Fuel Station",
+                    transactionType: "Drive-Thru"
+                },
+                systemInfo: {
+                    inventoryBefore: fuelInventory[fuelSelected] + (fuelLitres || 0),
+                    inventoryAfter: fuelInventory[fuelSelected] || 0,
+                    timestamp: new Date().toISOString()
+                }
+            };
             
-            if (ledgerId) {
-                alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n✅ Transaction recorded to ledger (ID: ${ledgerId})`);
-            } else {
-                alert(`Card payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n⚠️ Payment processed but ledger recording failed`);
-            }
+            console.log("💳 Card payment processed, pending pump assignment:", pendingTransactionData);
+            alert(`Card payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nPlease select pumping option to complete transaction.`);
             
             show("page3");
         }
@@ -1397,14 +1440,41 @@
         async function payEwallet() {
             paymentMethod = "E-Wallet";
             
-            // Record transaction to Firebase ledger
-            const ledgerId = await recordTransactionToLedger();
+            // Store transaction data temporarily (without pump and service info yet)
+            pendingTransactionData = {
+                transactionId: `TX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                timestamp: new Date().toISOString(),
+                customerInfo: {
+                    phoneNumber: document.getElementById("phone")?.value || "N/A",
+                    kioskLocation: currentKiosk || "N/A"
+                },
+                fuelTransaction: {
+                    fuelType: fuelSelected || "UNKNOWN",
+                    amount: fuelAmount || 0,
+                    litres: (fuelLitres || 0).toFixed(2),
+                    pricePerLitre: FUEL_PRICES[fuelSelected] || 0,
+                    pumpNumber: 0, // Will be updated later
+                    serviceType: "Pending" // Will be updated later
+                },
+                paymentInfo: {
+                    method: paymentMethod || "UNKNOWN",
+                    status: "payment-completed",
+                    receiptRequested: receiptRequested || false
+                },
+                stationInfo: {
+                    stationId: "DRIVETHRU-001",
+                    location: "IoT Fuel Station",
+                    transactionType: "Drive-Thru"
+                },
+                systemInfo: {
+                    inventoryBefore: fuelInventory[fuelSelected] + (fuelLitres || 0),
+                    inventoryAfter: fuelInventory[fuelSelected] || 0,
+                    timestamp: new Date().toISOString()
+                }
+            };
             
-            if (ledgerId) {
-                alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n✅ Transaction recorded to ledger (ID: ${ledgerId})`);
-            } else {
-                alert(`E-Wallet payment successful: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n⚠️ Payment processed but ledger recording failed`);
-            }
+            console.log("📱 E-Wallet payment processed, pending pump assignment:", pendingTransactionData);
+            alert(`E-Wallet payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nPlease select pumping option to complete transaction.`);
             
             show("page3");
         }
@@ -1529,12 +1599,12 @@
             });
         }
 
-        function selectPumping(type) {
+        async function selectPumping(type) {
             serviceType = type;
-            assignPump();
+            await assignPump(); // Wait for pump assignment and transaction recording
         }
 
-        function assignPump() {
+        async function assignPump() {
             // Free the current kiosk (customer moves to pump)
             if (currentKiosk) {
                 kioskCustomers[currentKiosk].occupied = false;
@@ -1590,6 +1660,33 @@
             
             updateInventoryDisplay();
             updateVisualStates();
+            
+            // NOW record the complete transaction with pump and service info
+            let transactionRecorded = false;
+            
+            if (pendingTransactionData) {
+                // Update pending transaction with pump and service info
+                pendingTransactionData.fuelTransaction.pumpNumber = assignedPump;
+                pendingTransactionData.fuelTransaction.serviceType = serviceType;
+                pendingTransactionData.paymentInfo.status = "completed";
+                pendingTransactionData.systemInfo.inventoryAfter = fuelInventory[fuelSelected];
+                
+                // Record the updated transaction
+                const ledgerId = await recordTransactionToLedger(pendingTransactionData);
+                
+                if (ledgerId) {
+                    console.log(`✅ Transaction completed and recorded with pump ${assignedPump} and service ${serviceType}`);
+                    transactionRecorded = true;
+                }
+            } else {
+                // If no pending transaction, create a new one
+                const ledgerId = await recordTransactionToLedger();
+                
+                if (ledgerId) {
+                    console.log(`✅ Transaction recorded with pump ${assignedPump} and service ${serviceType}`);
+                    transactionRecorded = true;
+                }
+            }
             
             document.getElementById("pumpInfo").innerHTML = 
                 `Assigned: Pump ${assignedPump}<br>
@@ -1664,6 +1761,10 @@
             receiptRequested = false;
             currentKiosk = null;
             currentCustomerName = "Customer";
+            
+            // Clear any pending transaction data
+            pendingTransactionData = null;
+            
             show("page1");
         }
         
