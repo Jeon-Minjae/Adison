@@ -1479,7 +1479,7 @@
             return 'whatsapp:+' + digits;
         }
 
-        // FIXED: submitPhone function without pump number in receipt if not assigned
+        // UPDATED: submitPhone function - COMPLETELY REMOVES PUMP INFORMATION FROM RECEIPTS
         function submitPhone() {
             const errorElement = document.getElementById("error");
             const loadingElement = document.getElementById("receiptLoading");
@@ -1502,7 +1502,7 @@
 
             const whatsappNumber = formatForWhatsApp(phoneInput);
 
-            // Create receipt data WITHOUT pumpNumber if it's 0 or not assigned
+            // Create receipt data - DO NOT SEND PUMP NUMBER AT ALL
             const receiptData = {
                 to: whatsappNumber,
                 amount: fuelAmount.toFixed(2),
@@ -1511,10 +1511,11 @@
                 pricePerLitre: FUEL_PRICES[fuelSelected].toFixed(2),
                 serviceType: serviceType,
                 paymentMethod: paymentMethod,
-                // Only include pumpNumber if it's assigned (not 0)
-                ...(assignedPump > 0 && { pumpNumber: assignedPump.toString() }),
+                // DO NOT INCLUDE pumpNumber FIELD AT ALL - COMPLETELY REMOVED
                 transactionId: `TX-${Date.now()}`
             };
+
+            console.log("Sending receipt data (no pump):", receiptData);
 
             fetch(API_URL, {
                 method: "POST",
