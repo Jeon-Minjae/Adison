@@ -598,6 +598,33 @@
             color: #666;
         }
         
+        /* LOYALTY CARD ANIMATION STYLES */
+        .loyalty-success {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .loyalty-success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .wave-animation {
+            animation: wave 2s infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
         /* RESPONSIVE DESIGN */
         @media (max-width: 1200px) {
             .big-boxes-row {
@@ -747,6 +774,33 @@
                         <p id="litresInfo"></p>
                         <button onclick="payCard()">Pay by Card</button>
                         <button onclick="payEwallet()">Pay by E-Wallet</button>
+                    </div>
+
+                    <!-- NEW: LOYALTY CARD PAGE -->
+                    <div id="pageLoyalty" class="page">
+                        <h2>Loyalty Card</h2>
+                        <p>Do you have a loyalty card?</p>
+                        <button onclick="yesLoyalty()">Yes</button>
+                        <button onclick="noLoyalty()">No</button>
+                    </div>
+
+                    <!-- NEW: WAVE CARD PAGE -->
+                    <div id="pageWaveCard" class="page">
+                        <h2>Loyalty Card</h2>
+                        <div id="waveCardAnimation" style="text-align: center; margin: 30px 0;">
+                            <div style="width: 200px; height: 130px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                        margin: 0 auto 30px auto; border-radius: 12px; display: flex; align-items: center; 
+                                        justify-content: center; color: white; font-size: 18px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                                FUEL REWARDS<br>GOLD CARD
+                            </div>
+                            <p style="font-size: 20px; color: #007bff;" id="waveStatus">Please wave your card now...</p>
+                            <div id="waveProgress" style="width: 100%; height: 8px; background-color: #e0e0e0; border-radius: 4px; margin: 20px auto; overflow: hidden; display: none;">
+                                <div id="waveProgressBar" style="height: 100%; background-color: #4CAF50; width: 0%; transition: width 0.5s ease;"></div>
+                            </div>
+                            <div id="waveCountdown" style="font-size: 16px; color: #666; margin: 15px 0; display: none;">
+                                Scanning: <span id="countdown">3</span> seconds
+                            </div>
+                        </div>
                     </div>
 
                     <div id="page3" class="page">
@@ -967,6 +1021,14 @@
                         status: "completed",
                         receiptRequested: true
                     },
+                    loyaltyInfo: {
+                        cardUsed: true,
+                        cardNumber: "LGOLD001",
+                        pointsEarned: 25,
+                        totalPoints: 525,
+                        pointsRedeemed: 0,
+                        discountApplied: 0
+                    },
                     stationInfo: {
                         stationId: "DRIVETHRU-001",
                         location: "IoT Fuel Station",
@@ -1176,6 +1238,10 @@
             }
         }
         
+        // LOYALTY CARD VARIABLES
+        let loyaltyCardUsed = false;
+        let loyaltyCardNumber = "";
+        
         let fuelSelected = "";
         let fuelAmount = 0;
         let fuelLitres = 0;
@@ -1241,6 +1307,18 @@
                     method: paymentMethod || "UNKNOWN",
                     status: "completed",
                     receiptRequested: receiptRequested || false
+                },
+                loyaltyInfo: loyaltyCardUsed ? {
+                    cardUsed: true,
+                    cardNumber: loyaltyCardNumber,
+                    pointsEarned: Math.floor(fuelAmount / 10) * 5,
+                    pointsRedeemed: 0,
+                    discountApplied: 0
+                } : {
+                    cardUsed: false,
+                    pointsEarned: 0,
+                    pointsRedeemed: 0,
+                    discountApplied: 0
                 },
                 stationInfo: {
                     stationId: "DRIVETHRU-001",
@@ -1345,6 +1423,7 @@
                                     <th style="padding: 12px; text-align: left; font-size: 14px;">Date/Time</th>
                                     <th style="padding: 12px; text-align: left; font-size: 14px;">Fuel Type</th>
                                     <th style="padding: 12px; text-align: left; font-size: 14px;">Amount</th>
+                                    <th style="padding: 12px; text-align: left; font-size: 14px;">Loyalty</th>
                                     <th style="padding: 12px; text-align: left; font-size: 14px;">Block #</th>
                                     <th style="padding: 12px; text-align: left; font-size: 14px;">Status</th>
                                 </tr>
@@ -1361,6 +1440,10 @@
                     const isDemo = tx.isDemo;
                     const demoBadge = isDemo ? '<span style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">DEMO</span>' : '';
                     
+                    // Loyalty info
+                    const loyaltyBadge = tx.loyaltyInfo?.cardUsed ? 
+                        '<span style="background: #9c27b0; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 3px;">LOYALTY</span>' : '';
+                    
                     ledgerHTML += `
                         <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='white'">
                             <td style="padding: 10px 12px; font-family: 'Courier New', monospace; font-size: 12px; color: #555;">
@@ -1372,9 +1455,17 @@
                             </td>
                             <td style="padding: 10px 12px; font-size: 13px;">
                                 ${tx.fuelTransaction?.fuelType || "N/A"}
+                                ${loyaltyBadge}
                             </td>
                             <td style="padding: 10px 12px; font-size: 13px; font-weight: 500;">
                                 RM${(tx.fuelTransaction?.amount || 0).toFixed(2)}
+                            </td>
+                            <td style="padding: 10px 12px; text-align: center; font-size: 13px;">
+                                ${tx.loyaltyInfo?.cardUsed ? 
+                                    `<div style="background: #e1bee7; display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px;">
+                                        +${tx.loyaltyInfo.pointsEarned} pts
+                                    </div>` : 
+                                    '<span style="color: #999; font-size: 11px;">None</span>'}
                             </td>
                             <td style="padding: 10px 12px; text-align: center; font-size: 13px;">
                                 <div style="background: ${isDemo ? '#fff3cd' : '#e3f2fd'}; display: inline-block; padding: 4px 10px; border-radius: 12px; font-weight: 500; border: ${isDemo ? '1px solid #ffeaa7' : 'none'}">
@@ -1677,6 +1768,91 @@
         }
 
         // ======================
+        // LOYALTY CARD FUNCTIONS
+        // ======================
+        
+        function yesLoyalty() {
+            loyaltyCardUsed = true;
+            show("pageWaveCard");
+            startCardWaveAnimation();
+        }
+
+        function noLoyalty() {
+            loyaltyCardUsed = false;
+            
+            // Update transaction data with loyalty info
+            if (pendingTransactionData) {
+                pendingTransactionData.loyaltyInfo = {
+                    cardUsed: false,
+                    cardNumber: null,
+                    pointsEarned: 0,
+                    pointsRedeemed: 0
+                };
+            }
+            
+            // Go to receipt page (DIGITAL RECEIPT STEP)
+            show("page3");
+        }
+
+        function startCardWaveAnimation() {
+            const waveStatus = document.getElementById("waveStatus");
+            const waveProgress = document.getElementById("waveProgress");
+            const waveProgressBar = document.getElementById("waveProgressBar");
+            const waveCountdown = document.getElementById("countdown");
+            const countdownContainer = document.getElementById("waveCountdown");
+            
+            // Show progress elements
+            waveProgress.style.display = 'block';
+            countdownContainer.style.display = 'block';
+            
+            // Generate random loyalty card number
+            loyaltyCardNumber = `L${Math.floor(100000 + Math.random() * 900000)}`;
+            
+            let seconds = 3;
+            let progress = 0;
+            const progressStep = 100 / 3;
+            
+            const interval = setInterval(() => {
+                seconds--;
+                waveCountdown.textContent = seconds;
+                
+                progress += progressStep;
+                waveProgressBar.style.width = `${progress}%`;
+                
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    
+                    // Show success
+                    waveStatus.innerHTML = '<span style="color: #4CAF50; font-weight: bold;">✓ Card scanned successfully!</span>';
+                    waveProgressBar.style.backgroundColor = '#4CAF50';
+                    
+                    // Generate loyalty points (5 points per RM10)
+                    const pointsEarned = Math.floor(fuelAmount / 10) * 5;
+                    
+                    // Update transaction data with loyalty info
+                    if (pendingTransactionData) {
+                        pendingTransactionData.loyaltyInfo = {
+                            cardUsed: true,
+                            cardNumber: loyaltyCardNumber,
+                            pointsEarned: pointsEarned,
+                            totalPoints: Math.floor(Math.random() * 500) + pointsEarned,
+                            pointsRedeemed: 0,
+                            discountApplied: 0
+                        };
+                    }
+                    
+                    // Show success message for 2 seconds then continue to RECEIPT page
+                    setTimeout(() => {
+                        alert(`✅ Loyalty card scanned!\nCard Number: ${loyaltyCardNumber}\nPoints Earned: ${pointsEarned}`);
+                        
+                        // Continue to DIGITAL RECEIPT page (page3)
+                        show("page3");
+                    }, 1500);
+                }
+            }, 1000);
+        }
+
+        // ======================
         // SIMULATION CONTROLS
         // ======================
         
@@ -1853,10 +2029,10 @@
                 }
             };
             
-            console.log("Card payment processed, pending pump assignment:", pendingTransactionData);
-            alert(`Card payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nPlease select pumping option to complete transaction.`);
+            console.log("Card payment processed, going to loyalty page:", pendingTransactionData);
+            alert(`Card payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nProceeding to loyalty card options...`);
             
-            show("page3");
+            show("pageLoyalty");
         }
         
         async function payEwallet() {
@@ -1895,10 +2071,10 @@
                 }
             };
             
-            console.log("E-Wallet payment processed, pending pump assignment:", pendingTransactionData);
-            alert(`E-Wallet payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nPlease select pumping option to complete transaction.`);
+            console.log("E-Wallet payment processed, going to loyalty page:", pendingTransactionData);
+            alert(`E-Wallet payment processed: RM${fuelAmount.toFixed(2)} for ${fuelLitres.toFixed(2)} litres of ${fuelSelected}\n\nProceeding to loyalty card options...`);
             
-            show("page3");
+            show("pageLoyalty");
         }
 
         function yesReceipt() {
@@ -1908,6 +2084,7 @@
         
         function noReceipt() {
             receiptRequested = false;
+            // Skip phone entry, go directly to pumping option
             show("page5");
         }
 
@@ -2089,18 +2266,36 @@
                     method: paymentMethod || "UNKNOWN",
                     status: "completed",
                     receiptRequested: receiptRequested || false
+                },
+                loyaltyInfo: loyaltyCardUsed ? {
+                    cardUsed: true,
+                    cardNumber: loyaltyCardNumber,
+                    pointsEarned: Math.floor(fuelAmount / 10) * 5,
+                    pointsRedeemed: 0,
+                    discountApplied: 0
+                } : {
+                    cardUsed: false,
+                    pointsEarned: 0,
+                    pointsRedeemed: 0,
+                    discountApplied: 0
                 }
             };
 
             const ledgerResult = await recordTransactionToLedger(txData);
             console.log(`Transaction recorded on blockchain:`, ledgerResult);
             
+            // Update display to show loyalty info if used
+            let loyaltyInfoHTML = '';
+            if (loyaltyCardUsed) {
+                loyaltyInfoHTML = `<br>Loyalty Card: ${loyaltyCardNumber}<br>Points Earned: ${Math.floor(fuelAmount / 10) * 5}`;
+            }
+            
             document.getElementById("pumpInfo").innerHTML = 
                 `Assigned: Pump ${assignedPump}<br>
                 ${fuelLitres.toFixed(2)}L ${fuelSelected}<br>
                 RM${fuelAmount.toFixed(2)}<br>
                 Payment: ${paymentMethod}<br>
-                Service: ${serviceType}`;
+                Service: ${serviceType}${loyaltyInfoHTML}`;
                 
             document.getElementById("pumpInstructions").innerHTML = 
                 `Customer has moved from ${currentKiosk} kiosk to Pump ${assignedPump}.<br>
@@ -2162,6 +2357,10 @@
             currentCustomerName = "Customer";
             assignedPump = 0;
             
+            // Reset loyalty variables
+            loyaltyCardUsed = false;
+            loyaltyCardNumber = "";
+            
             pendingTransactionData = null;
             
             show("page1");
@@ -2177,6 +2376,7 @@
         console.log("🔥 Firebase replaced. ✅ Hyperledger Fabric Simulator active with DEMO mode.");
         console.log("📊 Blockchain stats:", fuelBlockchain.getBlockchainStats());
         console.log("⛽ Fuel inventory loaded:", fuelInventory);
+        console.log("🛡️ Loyalty Card System: READY");
     </script>
 </body>
 </html>
